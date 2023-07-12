@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.greedy.waterfall.task.model.dao.TaskMapper">
+	<resultMap type="com.greedy.waterfall.task.model.dto.TaskDTO" id="taskResultMap">
+		<id property="taskNo" column="TASK_NO"/>
+		<result property="parentTaskNo" column="TASK_REF_NO"/>
+		<result property="startDate" column="TASK_START_DATE"/>
+		<result property="deadline" column="TASK_DEADLINE"/>
+		<result property="progression" column="TASK_PROGRESSION"/>
+		<result property="typeNo" column="TASK_TYPE_NO"/>
+		<result property="taskStatus" column="TASK_STATUS"/>
+		<result property="progressStatus" column="TASK_PROGRESS_STATUS"/>
+		<result property="taskStatus" column="TASK_STATUS"/>
+		<result property="taskCode" column="TASK_CATEGORY_CODE"/>
+		<result property="projectNo" column="PROJECT_NO"/>
+		<result property="managerNo" column="MEMBER_NO"/>
+		<result property="managerName" column="MEMBER_NAME"/>
+		<result property="importance" column="TASK_IMPORTANCE"/>
+		
+		<association property="taskCategory" resultMap="taskCategoryResultMap"></association>
+		<collection property="childList" resultMap="childTaskResultMap"></collection>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.task.model.dto.ChildTaskDTO" id="childTaskResultMap">
+		<id property="taskNo" column="TASK_NO"/>
+		<result property="parentTaskNo" column="TASK_REF_NO"/>
+		<result property="startDate" column="TASK_START_DATE"/>
+		<result property="deadline" column="TASK_DEADLINE"/>
+		<result property="progression" column="TASK_PROGRESSION"/>
+		<result property="taskStatus" column="TASK_STATUS"/>
+		<result property="progressStatus" column="TASK_PROGRESS_STATUS"/>
+		<result property="taskCode" column="TASK_CATEGORY_CODE"/>
+		<result property="projectNo" column="PROJECT_NO"/>
+		<result property="managerNo" column="MEMBER_NO"/>
+		<result property="managerName" column="MEMBER_NAME"/>
+		<result property="typeNo" column="TASK_TYPE_NO"/>
+		<result property="importance" column="TASK_IMPORTANCE"/>
+		
+		<association property="taskCategory" resultMap="taskCategoryResultMap"></association>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.task.model.dto.TaskCategoryDTO" id="taskCategoryResultMap">
+		<id property="categoryCode" column="TASK_CATEGORY_CODE"/>
+		<result property="categoryName" column="TASK_CATEGORY_NAME"/>
+		<result property="typeNo" column="TASK_CATEGORY_CODE_TYPE_NO"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.task.model.dto.ProjectMemberDTO" id="projectMemberResultMap">
+		<result property="memberNo" column="MEMBER_NO"/>
+		<result property="memberName" column="MEMBER_NAME"/>
+		<result property="roleNumber" column="ROLE_NO"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.member.model.dto.MemberDTO" id="memberResultMap">
+		<id property="no" column="MEMBER_NO"/>
+		<result property="name" column="MEMBER_NAME"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.task.model.dto.AllTaskCodeDTO" id="allTaskCodeResultMap">
+		<collection property="parentCategory" resultMap="parentCategoryResultMap"></collection>
+		<collection property="childCategory" resultMap="childCategoryResultMap"></collection>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.task.model.dto.ParentTaskCategoryDTO" id="parentCategoryResultMap">
+		<result property="typeNo" column="TASK_CATEGORY_CODE_TYPE_NO"/>
+		<result property="parentCategoryCode" column="TASK_CATEGORY_CODE"/>
+		<result property="parentCategoryName" column="TASK_CATEGORY_NAME"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.task.model.dto.ChildTaskCategoryDTO" id="childCategoryResultMap">
+		<result property="typeNo" column="TASK_CATEGORY_CODE_TYPE_NO"/>
+		<result property="childCategoryCode" column="TASK_CATEGORY_CODE"/>
+		<result property="childCategoryName" column="TASK_CATEGORY_NAME"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.task.model.dto.TaskRegistDTO" id="taskRegistResultMap">
+		<result property="parentTaskNo" column="TASK_NO"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.task.model.dto.TaskHistoryDTO" id="taskHistoryResultMap">
+		<result property="taskNo" column="TASK_NO"/>
+		<result property="memberName" column="MEMBER_NAME"/>
+		<result property="taskName" column="TASK_CATEGORY_NAME"/>
+	</resultMap>
+	
+	
+	<select id="selectParentTaskList" resultMap="taskResultMap">
+		SELECT
+		       A.TASK_CATEGORY_CODE
+		     , B.TASK_CATEGORY_NAME
+		     , A.TASK_NO
+		     , A.TASK_START_DATE
+		     , A.TASK_DEADLINE
+		     , A.TASK_PROGRESSION
+		  FROM TBL_TASK A
+		  JOIN TBL_TASK_CODE_MANAGE B ON(A.TASK_CATEGORY_CODE = B.TASK_CATEGORY_CODE ) 
+		 WHERE A.PROJECT_NO = #{ projectNo }
+		   AND A.TASK_REF_NO IS NULL
+		   AND A.TASK_STATUS = 'Y'
+	</select>
+	
+	<select id="selectChildTaskList" resultMap="childTaskResultMap">
+		SELECT
+		       A.TASK_CATEGORY_CODE
+		     , B.TASK_CATEGORY_NAME
+		     , A.TASK_NO
+		     , A.TASK_START_DATE
+		     , A.TASK_DEADLINE
+		     , A.TASK_PROGRESSION
+		  FROM TBL_TASK A
+		  JOIN TBL_TASK_CODE_MANAGE B ON(A.TASK_CATEGORY_CODE = B.TASK_CATEGORY_CODE ) 
+		 WHERE A.TASK_STATUS = 'Y'
+		   AND A.TASK_REF_NO = #{taskNo}
+		 	
+	</select>
+	
+	<select id="selectAllchildTask" resultMap="childTaskResultMap">
+		SELECT
+		       A.TASK_CATEGORY_CODE
+		     , B.TASK_CATEGORY_NAME
+		     , A.TASK_NO
+		     , A.TASK_START_DATE
+		     , A.TASK_DEADLINE
+		     , A.TASK_PROGRESSION
+		     , A.TASK_REF_NO
+		  FROM TBL_TASK A
+		  JOIN TBL_TASK_CODE_MANAGE B ON(A.TASK_CATEGORY_CODE = B.TASK_CATEGORY_CODE ) 
+		 WHERE A.TASK_STATUS = 'Y'
+		   AND A.PROJECT_NO = #{projectNo}
+		   AND A.TASK_REF_NO IS NOT NULL
+	</select>
+	
+	<select id="selectParentCategory" resultMap="parentCategoryResultMap">
+		SELECT
+		       A.TASK_CATEGORY_CODE
+		     , A.TASK_CATEGORY_NAME
+		  FROM TBL_TASK_CODE_MANAGE A
+		 WHERE TASK_CATEGORY_CODE_TYPE_NO = 1
+	</select>
+	
+	<select id="selectChildCategory" resultMap="childCategoryResultMap">
+		SELECT
+		       A.TASK_CATEGORY_CODE
+		     , A.TASK_CATEGORY_NAME
+		  FROM TBL_TASK_CODE_MANAGE A
+		 WHERE TASK_CATEGORY_CODE_TYPE_NO = 2
+	</select>
+	
+	<select id="selectAllProjectMember" resultMap="projectMemberResultMap">
+		SELECT 
+		       A.MEMBER_NO
+		     , B.MEMBER_NAME
+		     , C.ROLE_NO
+		  FROM TBL_PROJECT_MEM_HISTORY A
+		  JOIN TBL_MEMBER B ON(A.MEMBER_NO = B.MEMBER_NO)
+		  JOIN TBL_ROLE_ASSIGNMENT_HISTORY C ON(A.MEMBER_NO = C.MEMBER_NO)
+		 WHERE A.PROJECT_NO = #{ projectNo }
+		   AND C.ROLE_HISTORY_NO IN (SELECT MAX(ROLE_HISTORY_NO)
+		 	                                  FROM TBL_ROLE_ASSIGNMENT_HISTORY E
+		 	                                 WHERE E.PROJECT_NO = #{ projectNo }
+		 	                                 GROUP BY E.MEMBER_NO
+		 	                                          )
+	</select>
+	
+	<select id="selectParentTaskNo" resultType = "_int">
+		SELECT
+		       A.TASK_NO
+		  FROM TBL_TASK A
+		 WHERE A.PROJECT_NO = #{ projectNo }
+		   AND A.TASK_CATEGORY_CODE = #{ parentTaskCode }
+		   AND A.TASK_STATUS = 'Y'
+	</select>
+	
+	<select id="selectRefTaskCode" resultType="int">
+		SELECT
+		       A.TASK_REF_NO
+		  FROM TBL_TASK A
+		 WHERE A.TASK_NO = #{ taskNo }
+	</select>
+	
+	<select id="selectParentTaskNoCurrval" resultType = "_int">
+		SELECT
+		       TASK_NO.CURRVAL
+		  FROM DUAL
+	</select>
+	
+	
+	<insert id="registTask">
+		INSERT
+  		  INTO TBL_TASK A
+		(
+		  A.TASK_NO
+		, A.TASK_START_DATE
+		, A.TASK_DEADLINE
+		, A.TASK_PROGRESSION
+		, A.TASK_PROGRESS_STATUS
+		, A.TASK_TYPE_NO
+		, A.PROJECT_NO
+		, A.MEMBER_NO
+		, A.TASK_CATEGORY_CODE
+		, A.TASK_REF_NO
+		, A.TASK_IMPORTANCE
+		)
+		 VALUES
+		(
+		  TASK_NO.NEXTVAL
+		, #{ startDate }
+		, #{ deadline }
+		, #{ progressRatio }
+		, #{ progressStatus }
+		, #{ typeNo }
+		, #{ projectNo }
+		, #{ taskMember }
+		<if test="parentTaskNo == 0">
+		, #{ parentTaskCode }
+		</if>
+		<if test="parentTaskNo != 0">
+		, #{ taskCode }
+		</if>
+		<if test="parentTaskNo == 0">
+		, NULL
+		 </if>
+		<if test="parentTaskNo != 0">
+		, #{ parentTaskNo }
+		 </if>
+		, #{ importance }
+		)
+		    
+	</insert>
+	<insert id="registParentTask">
+		INSERT
+  		  INTO TBL_TASK A
+		(
+		  A.TASK_NO
+		, A.TASK_START_DATE
+		, A.TASK_DEADLINE
+		, A.TASK_PROGRESSION
+		, A.TASK_PROGRESS_STATUS
+		, A.TASK_TYPE_NO
+		, A.PROJECT_NO
+		, A.MEMBER_NO
+		, A.TASK_CATEGORY_CODE
+		, A.TASK_REF_NO
+		, A.TASK_IMPORTANCE
+		)
+		VALUES
+		(
+		  TASK_NO.NEXTVAL
+		, #{ startDate }
+		, #{ deadline }
+		, #{ progressRatio }
+		, #{ progressStatus }
+		, #{ typeNo }
+		, #{ projectNo }
+		, #{ taskMember }
+		, #{ taskCode }
+		, NULL
+		, #{ importance }
+		     )
+	</insert>
+	
+	<insert id="registHistory">
+		INSERT
+		  INTO TBL_TASK_HISTORY A
+		(
+		  A.TASK_HISTORY_NO
+		, A.TASK_PROGRESS_STATUS
+		, A.TASK_NO
+		, A.MEMBER_NO
+		, A.TASK_HISTORY_RECORD
+		, A.TASK_UPDATED_DATE
+		, A.TASK_UPDATED_CODE
+		)
+		VALUES
+		(
+		  TASK_HISTORY_NO.NEXTVAL
+		, #{ progressStatus }
+		, TASK_NO.CURRVAL
+		, #{ taskMember }
+		<if test="parentTaskCode == 'NULL'">
+		, #{ parentTaskCode}
+		</if>
+		<if test="parentTaskCode != 'NULL'">
+		, #{ taskCode }
+		</if> 
+		, SYSDATE
+		, 1
+		)
+	</insert>
+	
+	<select id="selectAllCategoryCode" resultMap="taskCategoryResultMap">
+		SELECT
+		       A.TASK_CATEGORY_CODE
+		     , A.TASK_CATEGORY_NAME
+		     , A.TASK_CATEGORY_CODE_TYPE_NO
+		  FROM TBL_TASK_CODE_MANAGE A
+	</select>
+	
+	<select id="selectChildTask" resultMap="childTaskResultMap">
+		SELECT
+		       A.TASK_REF_NO
+		     , A.TASK_NO
+		     , A.TASK_START_DATE
+		     , A.TASK_DEADLINE
+		     , A.TASK_PROGRESSION
+		     , A.TASK_PROGRESS_STATUS
+		     , A.TASK_TYPE_NO
+		     , A.TASK_STATUS
+		     , A.PROJECT_NO
+		     , A.TASK_IMPORTANCE
+		     , A.MEMBER_NO
+		     , C.MEMBER_NAME
+		     , A.TASK_CATEGORY_CODE
+		     , B.TASK_CATEGORY_NAME
+		  FROM TBL_TASK A
+		  JOIN TBL_TASK_CODE_MANAGE B ON(A.TASK_CATEGORY_CODE = B.TASK_CATEGORY_CODE )
+		  JOIN TBL_MEMBER C ON(A.MEMBER_NO = C.MEMBER_NO)
+		 WHERE A.TASK_STATUS = 'Y'
+		   AND A.TASK_NO = #{ taskNo }
+	</select>
+	
+	<select id="selectParentTask" resultMap="taskResultMap">
+		SELECT
+		       A.TASK_START_DATE
+		     , A.TASK_NO
+		     , A.TASK_DEADLINE
+		     , A.TASK_PROGRESSION
+		     , A.TASK_PROGRESS_STATUS
+		     , A.TASK_TYPE_NO
+		     , A.TASK_STATUS
+		     , A.TASK_IMPORTANCE
+		     , A.MEMBER_NO
+		     , C.MEMBER_NAME
+		     , A.TASK_CATEGORY_CODE
+		     , B.TASK_CATEGORY_NAME
+		  FROM TBL_TASK A
+		  JOIN TBL_TASK_CODE_MANAGE B ON(A.TASK_CATEGORY_CODE = B.TASK_CATEGORY_CODE)
+		  JOIN TBL_MEMBER C ON(A.MEMBER_NO = C.MEMBER_NO) 
+		   AND A.TASK_STATUS = 'Y'
+		   AND A.TASK_NO = #{ parentNo }
+	</select>
+	
+	<select id="selectMemberName" resultType="String">
+		SELECT
+		       A.MEMBER_NAME
+		  FROM TBL_MEMBER A
+		 WHERE MEMBER_NO = #{ memberNo }
+	</select>
+	
+	<select id="selectTaskName" resultType="String">
+		SELECT
+		       A.TASK_CATEGORY_NAME
+		  FROM TBL_TASK_CODE_MANAGE A
+		 WHERE A.TASK_CATEGORY_CODE = #{ taskCode }
+		       
+	</select>
+	
+	<select id="selectHistoryInfo" resultMap="taskHistoryResultMap">
+		SELECT
+		       (SELECT
+		               B.MEMBER_NAME
+		          FROM TBL_MEMBER B
+		         WHERE MEMBER_NO = #{ memberNo }
+		        ) AS MEMBER_NAME
+		     , C.TASK_CATEGORY_NAME
+		  FROM TBL_TASK A
+		  JOIN TBL_TASK_CODE_MANAGE C ON(A.TASK_CATEGORY_CODE = C.TASK_CATEGORY_CODE) 
+		 WHERE A.TASK_NO = #{ taskNo }
+	</select>
+	
+	<update id="updateTask">
+		UPDATE
+		       TBL_TASK A
+		   SET A.TASK_START_DATE = #{ startDate }
+		     , A.TASK_DEADLINE = #{ deadline }
+		     , A.TASK_PROGRESSION = #{ progressRatio }
+		     , A.TASK_PROGRESS_STATUS = #{ progressStatus }
+		     , A.TASK_TYPE_NO = #{ typeNo }
+		     , A.PROJECT_NO = #{ projectNo }
+		     , A.MEMBER_NO = #{ taskMember }
+		     , A.TASK_CATEGORY_CODE = #{ taskCode }
+		     , A.TASK_IMPORTANCE = #{ importance }
+		 WHERE A.TASK_NO = #{ taskNo }
+	</update>
+	
+	<update id="deleteTask">
+		UPDATE
+               TBL_TASK A
+           SET A.TASK_STATUS = 'N'
+         WHERE A.TASK_NO = #{ taskNo }
+            OR A.TASK_REF_NO = #{ taskNo }		 
+	</update>
+	
+	<update id="deleteChildTask">
+		UPDATE
+               TBL_TASK A
+           SET A.TASK_STATUS = 'N'
+         WHERE A.TASK_NO = #{ taskNo }
+	</update>
+	
+	<insert id="insertUpdateHistory">
+		INSERT
+		  INTO TBL_TASK_HISTORY A
+		(
+		  A.TASK_HISTORY_NO
+		, A.TASK_PROGRESS_STATUS
+		, A.TASK_NO
+		, A.MEMBER_NO
+		, A.TASK_HISTORY_RECORD
+		, A.TASK_UPDATED_DATE
+		, A.TASK_UPDATED_CODE
+		)
+		VALUES
+		(
+		  TASK_HISTORY_NO.NEXTVAL
+		, #{ progressStatus }
+		, #{ taskNo }
+		, #{ memberNo }
+		, #{ taskCode }
+	    , SYSDATE
+		, 2
+		)
+	</insert>
+	<insert id="insertDeleteHistory">
+		INSERT
+		  INTO TBL_TASK_HISTORY A
+		(
+		  A.TASK_HISTORY_NO
+		, A.TASK_NO
+		, A.MEMBER_NO
+		, A.TASK_UPDATED_DATE
+		, A.TASK_UPDATED_CODE
+		)
+		VALUES
+		(
+		   TASK_HISTORY_NO.NEXTVAL
+		, #{ taskNo }
+		, #{ memberNo }
+		, SYSDATE
+		, 3
+		)
+	</insert>
+	
+	<insert id="insertEntireRegistHistroy">
+		INSERT
+		  INTO TBL_ENTIRE_HISTORY A
+		(
+		  A.HISTORY_NO
+		, A.UPDATED_DATE
+		, A.CONTENT
+		, A.CATEGORY_TYPE_NO
+		, A.PROJECT_NO
+		, A.REGISTER_NO  
+		)
+		VALUES
+		(
+		  HISTORY_NO.NEXTVAL
+		, SYSDATE
+		, '[' || #{ memberName } || ']' || '님이 ' || ' [' || #{ taskName } || '] ' || ' [' || '업무' || '] ' || '를 ' || '[' || '등록' || '] ' || '했습니다'
+		, 2
+		, #{ projectNo }
+		, #{ memberNo }
+		     )
+	</insert>
+		
+	<insert id="insertEntireUpdateHistory">
+		INSERT
+		  INTO TBL_ENTIRE_HISTORY A
+		(
+		  A.HISTORY_NO
+		, A.UPDATED_DATE
+		, A.CONTENT
+		, A.CATEGORY_TYPE_NO
+		, A.PROJECT_NO
+		, A.REGISTER_NO
+		)
+		VALUES
+		(
+		  HISTORY_NO.NEXTVAL
+		, SYSDATE
+		, '[' || #{ memberName } || ']' || '님이 ' || ' [' || #{ taskName } || '] ' || ' [' || '업무' || '] ' || '를 ' || '[' || '수정' || '] ' || '했습니다'
+		, 2
+		, #{ projectNo }
+		, #{ memberNo }
+	         )
+	</insert>
+	
+	<insert id="insertEntireDeleteHistory">
+		INSERT
+		  INTO TBL_ENTIRE_HISTORY A
+		(
+		  A.HISTORY_NO
+		, A.UPDATED_DATE
+		, A.CONTENT
+		, A.CATEGORY_TYPE_NO
+		, A.PROJECT_NO
+		, A.REGISTER_NO
+		)
+		VALUES
+		(
+		  HISTORY_NO.NEXTVAL
+		, SYSDATE
+		, '[' || #{ memberName } || ']' || '님이 ' || ' [' || #{ taskName  } || '] ' || ' [' || '업무' || '] ' || '를 ' || '[' || '삭제' || '] ' || '했습니다'
+		, 2
+		, #{ projectNo }
+		, #{ memberNo }
+	    )
+	</insert>
+	
+</mapper>

@@ -1,0 +1,31 @@
+diff a/src/main/java/com/greedy/waterfall/member/model/dto/MemberDTO.java b/src/main/java/com/greedy/waterfall/member/model/dto/MemberDTO.java	(rejected hunks)
+@@ -1,12 +1,29 @@
+ package com.greedy.waterfall.member.model.dto;
+ 
++
+ import lombok.AllArgsConstructor;
+ import lombok.Builder;
++import java.sql.Date;
++import java.util.List;
++import lombok.AllArgsConstructor;
+ import lombok.Getter;
+ import lombok.NoArgsConstructor;
+ import lombok.Setter;
+ import lombok.ToString;
+ 
++/**
++ * <pre>
++ * Class : MemberDTO
++ * Comment : 회원의 정보가 담을 클래스
++ * 관련 테이블 : TBL_MEMBER 
++ * 			
++ * History
++ * 2022. 3. 12.  (김영광)
++ * </pre>
++ * @version 0.0.1
++ * @author 김영광
++ */
++
+ @NoArgsConstructor
+ @AllArgsConstructor
+ @Setter

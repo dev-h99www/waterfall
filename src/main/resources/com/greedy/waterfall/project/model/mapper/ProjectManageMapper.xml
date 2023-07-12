@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.greedy.waterfall.project.model.mapper.ProjectManageMapper">
+	
+	<resultMap type="com.greedy.waterfall.project.model.dto.ProjectManageMemberDTO" id="projectMemberResult">
+		<result property="projectNo" column="PROJECT_NO"/>
+		<result property="projectName" column="PROJECT_NAME"/>
+		<result property="memberNo" column="MEMBER_NO"/>
+		<result property="memberName" column="MEMBER_NAME"/>
+		<result property="managerNo" column="MANAGER_NO"/>
+		<result property="managerName" column="MANAGER_NAME"/>
+		<result property="completeTask" column="COMPLETE_TASK"/>
+		<result property="progressingTask" column="PROGRESSING_TASK"/>
+		<result property="registOutput" column="REGIST_OUTPUT"/>
+		<result property="registIssue" column="REGIST_ISSUE"/>
+		<result property="joinDate" column="PROJECT_MEM_STARTED_DATE"/>
+		<result property="quitDate" column="PROJECT_MEM_DROP_DATE"/>
+		
+		<collection property="role" resultMap="projectRole"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.project.model.dto.ProjectRoleDTO" id="projectRole">
+		<id property="roleNo" column="ROLE_NO"/>
+		<result property="roleName" column="ROLE_NAME"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.project.model.dto.DeptDTO" id="deptResult">
+		<id property="deptCode" column="DEPT_CODE"/>
+		<result property="deptName" column="DEPT_NAME"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.board.model.dto.MeetingMemberDTO" id="memberResult">
+		<id property="memberNo" column="MEMBER_NO"/>
+		<result property="memberName" column="MEMBER_NAME"/>
+	</resultMap>
+	
+	<select id="findProjectMemberCount" parameterType="hashmap" resultType="_int">
+        SELECT /* com.greedy.waterfall.project.model.mapper.ProjectManageMapper#findProjectMemberCount() */
+               COUNT(COUNT(B.MEMBER_NO))
+          FROM TBL_PROJECT_MEM_HISTORY A
+          LEFT JOIN TBL_ROLE_ASSIGNMENT_HISTORY B ON (A.MEMBER_NO = B.MEMBER_NO)
+          JOIN TBL_MEMBER C ON (A.MEMBER_NO = C.MEMBER_NO)
+          JOIN TBL_ROLE_CATEGORY D ON (B.ROLE_NO = D.ROLE_NO)
+		<where>
+        	<if test="searchCondition == 'memberName'">   
+               C.MEMBER_NAME LIKE '%' || #{ searchValue } || '%'
+           	</if>
+        	<if test="searchCondition == 'roleName'">   
+               D.ROLE_NAME LIKE '%' || #{ searchValue } || '%'
+           	</if>
+           AND B.ROLE_NO != 8
+           AND B.PROJECT_NO = #{ projectNo }
+		</where>
+         GROUP BY B.MEMBER_NO
+	</select>
+	
+	<select id="findMemberInfo" resultMap="projectMemberResult">
+        SELECT /* com.greedy.waterfall.project.model.mapper.ProjectManageMapper#findMemberInfo() */
+               B.MEMBER_NO
+             , B.MEMBER_NAME
+             , C.PROJECT_NO
+             , C.PROJECT_NAME
+             , D.ROLE_NAME
+             , E.MEMBER_NAME AS MANAGER_NAME
+             , E.MEMBER_NO AS MANAGER_NO
+          FROM TBL_ROLE_ASSIGNMENT_HISTORY A
+          JOIN TBL_MEMBER B ON (A.MEMBER_NO = B.MEMBER_NO)
+          JOIN TBL_PROJECT C ON (A.PROJECT_NO = C.PROJECT_NO)
+          JOIN TBL_ROLE_CATEGORY D ON (A.ROLE_NO = D.ROLE_NO)
+          JOIN TBL_MEMBER E ON (A.MANAGER_NO = E.MEMBER_NO)
+         WHERE A.PROJECT_NO = #{ projectNo }
+           AND A.MEMBER_NO = #{ memberNo }
+	</select>
+	
+	<select id="findProjectMember" resultMap="projectMemberResult" parameterType="com.greedy.waterfall.common.paging.SelectCriteria">
+        SELECT /* com.greedy.waterfall.project.model.mapper.ProjectManageMapper#findProjectMember() */
+               A.RNUM
+             , A.PROJECT_NO
+             , A.MEMBER_NO
+             , A.MEMBER_NAME
+             , A.ROLE_NAME
+             , A.PROJECT_MEM_STARTED_DATE
+             , A.PROJECT_MEM_DROP_DATE
+             , A.COMPLETE_TASK
+             , A.PROGRESSING_TASK
+             , A.REGIST_OUTPUT
+             , A.REGIST_ISSUE
+          FROM (SELECT ROWNUM RNUM
+                     , B.PROJECT_NO
+                     , B.MEMBER_NO
+                     , B.MEMBER_NAME
+                     , B.ROLE_NAME
+                     , B.PROJECT_MEM_STARTED_DATE
+                     , B.PROJECT_MEM_DROP_DATE
+                     , B.COMPLETE_TASK
+                     , B.PROGRESSING_TASK
+                     , B.REGIST_OUTPUT
+                     , B.REGIST_ISSUE
+                  FROM (SELECT C.PROJECT_NO
+                             , E.MEMBER_NO
+                             , E.MEMBER_NAME
+                             , F.ROLE_NAME
+                             , G.PROJECT_MEM_STARTED_DATE
+                             , G.PROJECT_MEM_DROP_DATE
+                             , (SELECT COUNT(*)
+                                  FROM TBL_TASK H
+                                 WHERE H.PROJECT_NO = C.PROJECT_NO
+                                   AND H.MEMBER_NO = C.MEMBER_NO
+                                   AND H.TASK_PROGRESS_STATUS = '완료'
+                               ) AS COMPLETE_TASK
+                             , (SELECT COUNT(*)
+                                  FROM TBL_TASK I
+                                 WHERE I.PROJECT_NO = C.PROJECT_NO
+                                   AND I.MEMBER_NO = C.MEMBER_NO
+                                   AND I.TASK_PROGRESS_STATUS = '진행중'
+                               ) AS PROGRESSING_TASK
+                             , (SELECT COUNT(*)
+                                  FROM TBL_OUTPUT J
+                                 WHERE J.PROJECT_NO = C.PROJECT_NO
+                                   AND J.MEMBER_NO = C.MEMBER_NO
+                               ) AS REGIST_OUTPUT
+                             , (SELECT COUNT(*)
+                                  FROM TBL_ISSUE K
+                                 WHERE K.PROJECT_NO = C.PROJECT_NO
+                                   AND K.ISSUE_REGISTER = C.MEMBER_NO
+                               ) AS REGIST_ISSUE
+                          FROM (SELECT D.PROJECT_NO
+                                     , D.MEMBER_NO
+                                     , D.ROLE_NO
+                                  FROM TBL_ROLE_ASSIGNMENT_HISTORY D
+                                 WHERE D.ROLE_NO != 8
+                                   AND D.PROJECT_NO = #{ projectNo }
+                               ) C
+                          JOIN TBL_MEMBER E ON (C.MEMBER_NO = E.MEMBER_NO)
+                          JOIN TBL_ROLE_CATEGORY F ON (C.ROLE_NO = F.ROLE_NO)
+                          JOIN TBL_PROJECT_MEM_HISTORY G ON (C.MEMBER_NO = G.MEMBER_NO)
+                        <where>
+                          	<if test="searchCondition == 'memberName'">
+                               E.MEMBER_NAME LIKE '%' || #{ searchValue } || '%'
+                          	</if>
+                          	<if test="searchCondition == 'roleName'">
+                               F.ROLE_NAME LIKE '%' || #{ searchValue } || '%'
+                          	</if>
+                           AND G.PROJECT_NO = #{ projectNo } 
+                           AND G.PROJECT_MEM_DROP_DATE IS NULL   
+         				</where>
+                         ORDER BY G.PROJECT_MEM_STARTED_DATE
+                             , E.MEMBER_NAME
+                       ) B
+               ) A
+	</select>
+    
+    <select id="findNewMember" resultMap="memberResult">
+        SELECT /* com.greedy.waterfall.project.model.mapper.ProjectManageMapper#findNewMember() */
+               B.MEMBER_NO
+             , B.MEMBER_NAME
+          FROM TBL_MEMBER_COM_INFO A
+          JOIN TBL_MEMBER B ON (A.MEMBER_NO = B.MEMBER_NO)
+         WHERE A.TEAM_CODE = #{ teamCode }
+           AND B.MEMBER_NO NOT IN (SELECT C.MEMBER_NO
+                                     FROM TBL_PROJECT_MEM_HISTORY C
+                                    WHERE C.PROJECT_NO = TO_NUMBER(#{ projectNo })
+                                      AND C.PROJECT_MEM_DROP_DATE IS  NULL
+                                  )    
+    </select>
+    
+    <select id="findAllRole" resultMap="projectRole">
+        SELECT /* com.greedy.waterfall.project.model.mapper.ProjectManageMapper#findAllRole() */
+               A.ROLE_NO
+             , A.ROLE_NAME
+          FROM TBL_ROLE_CATEGORY A
+         WHERE A.ROLE_NO != 8
+         ORDER BY A.ROLE_NO
+    </select>
+    
+   	<select id="findAllDept" resultMap="deptResult">
+        SELECT /* com.greedy.waterfall.project.model.mapper.ProjectManageMapper#findAllDept() */
+               A.DEPT_CODE
+             , A.DEPT_NAME
+          FROM TBL_DEPT A
+	</select>
+	
+	<select id="findMemberRole" parameterType="hashmap" resultMap="projectRole">
+        SELECT /* com.greedy.waterfall.project.model.mapper.ProjectManageMapper#findMemberRole() */
+               A.ROLE_NO
+             , B.ROLE_NAME
+          FROM TBL_ROLE_ASSIGNMENT_HISTORY A
+          JOIN TBL_ROLE_CATEGORY B ON(A.ROLE_NO = B.ROLE_NO)
+         WHERE A.PROJECT_NO = #{ projectNo }
+           AND A.MEMBER_NO = #{ memberNo }
+	</select>
+	
+	<insert id="registRoleToProject" parameterType="hashmap">
+        INSERT /* com.greedy.waterfall.project.model.mapper.ProjectManageMapper#registRoleToProject() */ 
+          INTO TBL_ROLE_ASSIGNMENT_HISTORY A
+        (
+          A.MEMBER_NO
+        , A.ROLE_NO
+        , A.PROJECT_NO
+        , A.ROLE_HISTORY_NO
+        , A.MANAGER_NO
+        )
+        VALUES
+        (
+          #{ memberNo }
+        , #{ roleNo }
+        , #{ projectNo }
+        , ROLE_HISTORY_NO.NEXTVAL
+        , #{ managerNo }
+        )
+	</insert>
+	
+	<insert id="registMemberToProject">
+        INSERT /* com.greedy.waterfall.project.model.mapper.ProjectManageMapper#registMemberToProject() */
+          INTO TBL_PROJECT_MEM_HISTORY A
+        (
+          A.PROJECT_MEM_HISTORY_NO
+        , A.PROJECT_MEM_STARTED_DATE
+        , A.MEMBER_NO
+        , A.PROJECT_NO
+        , A.MANAGER_NO
+        )
+        VALUES
+        (
+          PROJECT_MEM_HISTORY_NO.NEXTVAL
+        , SYSDATE
+        , #{ memberNo }
+        , #{ projectNo }
+        , #{ managerNo }
+        )
+	</insert>
+	
+	<delete id="removeOldRole">
+        DELETE /* com.greedy.waterfall.project.model.mapper.ProjectManageMapper#removeOldRole() */
+          FROM TBL_ROLE_ASSIGNMENT_HISTORY A
+         WHERE A.MEMBER_NO = #{ memberNo }
+           AND A.PROJECT_NO = #{ projectNo }
+	</delete>
+	
+	<delete id="removeMemberRole" parameterType="hashmap">
+        DELETE /* com.greedy.waterfall.project.model.mapper.ProjectManageMapper#removeMemberRole() */
+          FROM TBL_ROLE_ASSIGNMENT_HISTORY A
+         WHERE A.MEMBER_NO = #{ memberNo }
+           AND A.PROJECT_NO = #{ projectNo }
+	</delete>
+	
+	<update id="removeMemberJoinHistory" parameterType="hashmap">
+        UPDATE /* com.greedy.waterfall.project.model.mapper.ProjectManageMapper#removeMemberJoinHistory() */
+               TBL_PROJECT_MEM_HISTORY A
+           SET A.PROJECT_MEM_DROP_DATE = SYSDATE
+         WHERE A.MEMBER_NO = #{ memberNo }
+           AND A.PROJECT_NO = #{ projectNo }
+	</update>
+	
+	<insert id="registEntireHistoryProjectRegist">
+        INSERT /* com.greedy.waterfall.project.model.mapper.ProjectManageMapper#registEntireHistoryProjectRegist() */
+          INTO TBL_ENTIRE_HISTORY A
+        (
+          A.HISTORY_NO
+        , A.UPDATED_DATE
+        , A.CONTENT
+        , A.CATEGORY_TYPE_NO
+        , A.PROJECT_NO
+        , A.REGISTER_NO
+        ) 
+        VALUES
+        (
+          HISTORY_NO.NEXTVAL
+        , SYSDATE
+        , #{ content }
+        , 1
+        , #{ projectNo }
+        , #{ managerNo }
+        )
+	</insert>
+</mapper>

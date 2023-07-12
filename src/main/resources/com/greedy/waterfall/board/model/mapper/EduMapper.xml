@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.greedy.waterfall.board.model.mapper.EduMapper">
+	<resultMap type="com.greedy.waterfall.board.model.dto.EduDTO" id="eduResultMap">
+	 	<id property="no" column="BOARD_NO"/>
+	 	<result property="updatedDate" column="BOARD_UPDATED_DATE"/>
+	 	<result property="registedDate" column="BOARD_POSTING_DATE"/>
+	 	<result property="title" column="BOARD_TITLE"/>
+	 	<result property="content" column="BOARD_CONTENT"/>
+	 	<result property="status" column="BOARD_STATUS"/>
+	 	<result property="boardCategoryNo" column="BOARD_CATEGORY_NO"/>
+	 	<result property="count" column="BOARD_COUNT"/>
+	 	<result property="projectNo" column="PROJECT_NO"/>
+	 	<result property="memberNo" column="MEMBER_NO"/>
+	 	<result property="rnum" column="RNUM"/>
+	 	<result property="fileNo" column="FILE_NO"/>
+	 	<result property="originalName" column="FILE_ORIGIN_NAME"/>
+	 	
+	 	<association property="writer" resultMap="memberResultMap"/>
+	 	<association property="file" resultMap="fileResultMap"/>
+	 	</resultMap>
+ 	
+ 	<resultMap type="com.greedy.waterfall.member.model.dto.MemberDTO" id="memberResultMap">
+		<id property="no" column="MEMBER_NO"/>		
+		<result property="name" column="MEMBER_NAME"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.board.model.dto.EduFileDTO" id="fileResultMap">
+		<id property="fileNo" column="FILE_NO"/>
+		<result property="refBoardNo" column="REF_BOARD_NO"/>
+		<result property="savedPath" column="FILE_PATH"/>
+		<result property="originalName" column="FILE_ORIGIN_NAME"/>
+		<result property="randomName" column="FILE_RANDOM_NAME"/>
+		<result property="status" column="FILE_STATUS"/>
+		<result property="fileCategoryNo" column="FILE_CATEGORY_NO"/>
+	</resultMap>
+	
+	<select id="selectTotalCount" resultType="_int" parameterType="hashmap">
+		SELECT	/* com.greedy.waterfall.board.model.mapper.EduMapper#selectTotalCount() */
+			   COUNT(*)
+	      FROM TBL_BOARD A
+	      <where>
+			<if test="searchCondition == 'title'">
+				A.BOARD_TITLE LIKE '%' || #{ searchValue } || '%'
+			</if>
+			<if test="searchCondition == 'content'">
+				A.BOARD_CONTENT LIKE '%' || #{ searchValue } || '%'
+			</if>
+	   	   AND A.BOARD_STATUS = 'Y'
+	       AND A.BOARD_CATEGORY_NO = 2
+	       AND A.PROJECT_NO = #{ projectNo }
+	      </where> 
+	</select>
+	
+	<select id="selectEduList" parameterType="com.greedy.waterfall.common.paging.SelectCriteria" resultMap="eduResultMap">
+		SELECT	/* com.greedy.waterfall.board.model.mapper.EduMapper#selectEduList() */
+			   A.RNUM
+		     , A.BOARD_NO
+		     , A.BOARD_TITLE
+		     , A.BOARD_CONTENT
+		     , A.BOARD_STATUS
+		     , a.BOARD_CATEGORY_NO
+		     , A.BOARD_UPDATED_DATE
+		     , A.BOARD_COUNT
+		     , A.MEMBER_NO
+		     , A.PROJECT_NO
+		     , D.MEMBER_NAME
+		  FROM (SELECT ROWNUM RNUM
+		  			 , B.BOARD_NO
+		  	 		 , B.BOARD_TITLE
+		  	  		 , B.BOARD_CONTENT
+		  			 , B.BOARD_STATUS
+		  			 , B.BOARD_CATEGORY_NO
+		  	 		 , B.BOARD_UPDATED_DATE
+		  	  		 , B.BOARD_COUNT
+		  	  		 , B.PROJECT_NO
+		  	 		 , B.MEMBER_NO
+		  	 FROM (SELECT C.BOARD_NO
+		  	     		, C.BOARD_TITLE
+		  	     		, C.BOARD_CONTENT
+		  	     		, C.BOARD_STATUS
+		  	     		, C.BOARD_CATEGORY_NO
+		  	     		, C.BOARD_UPDATED_DATE
+		  	     		, C.BOARD_COUNT
+		  	     		, C.PROJECT_NO
+		  	     		, C.MEMBER_NO
+		  	    FROM TBL_BOARD C
+		  	   <where>
+		  	   	   <if test="searchCondition == 'title'">
+		  	   	       C.BOARD_TITLE LIKE '%' || #{ searchValue } || '%'
+		  	   	   </if>
+		  	   	   <if test="searchCondition == 'content'">
+		  	   	   	   C.BOARD_CONTENT LIKE '%' || #{ searchValue } || '%'
+		  	   	   </if>
+		  	   	   AND C.BOARD_STATUS = 'Y'
+		  	   	   AND C.BOARD_CATEGORY_NO = 2 
+		  	   </where>  	  	
+		  	     ORDER BY C.BOARD_NO DESC
+		  	   ) B  
+		  	 <![CDATA[
+		  	 WHERE ROWNUM <= #{ endRow }
+		  	 ]]> 
+		  	) A
+	  JOIN TBL_MEMBER D ON (A.MEMBER_NO = D.MEMBER_NO)
+	 WHERE A.RNUM >= #{ startRow }
+	   AND A.PROJECT_NO = #{ projectNo }
+	 ORDER BY 1 DESC      
+	</select>
+	
+	<insert id="insertEduBoard" parameterType="com.greedy.waterfall.board.model.dto.EduDTO">
+		INSERT	/* com.greedy.waterfall.board.model.mapper.EduMapper#insertEduBoard() */
+		  INTO TBL_BOARD A
+		(
+		  A.BOARD_NO
+		, A.BOARD_CATEGORY_NO
+		, A.BOARD_TITLE
+		, A.BOARD_CONTENT
+		, A.PROJECT_NO		
+		, A.MEMBER_NO
+		)
+		VALUES
+		(
+		  BOARD_NO.NEXTVAL
+		, 2  
+		, #{ title }
+		, #{ content }
+		, #{ projectNo }
+		, #{ memberNo }
+		)
+		<selectKey keyProperty="no" resultType="Integer" order="AFTER">
+			SELECT
+			       BOARD_NO.CURRVAL
+			  FROM DUAL    
+		</selectKey> 
+	</insert>
+	
+	<insert id="insertEduFile" parameterType="com.greedy.waterfall.board.model.dto.EduFileDTO">
+		INSERT	/* com.greedy.waterfall.board.model.mapper.EduMapper#insertEduFile() */
+		  INTO TBL_FILE A
+		 (
+		   A.FILE_NO
+		 , A.REF_BOARD_NO
+		 , A.FILE_PATH
+		 , A.FILE_ORIGIN_NAME
+		 , A.FILE_RANDOM_NAME
+		 , A.FILE_CATEGORY_NO  
+		 )
+		 VALUES
+		 (
+		   FILE_NO.NEXTVAL
+		 , #{ refBoardNo }
+		 , #{ savedPath }
+		 , #{ originalName }
+		 , #{ randomName }
+		 , 2  
+		 ) 
+	</insert>
+	
+	<update id="incrementEduCount" parameterType="_int">
+      UPDATE	/* com.greedy.waterfall.board.model.mapper.EduMapper#incrementEduCount() */ 
+             TBL_BOARD A
+         SET A.BOARD_COUNT = (SELECT B.BOARD_COUNT
+                                FROM TBL_BOARD B
+                               WHERE B.BOARD_NO = #{ no }
+                             ) + 1
+       WHERE A.BOARD_NO = #{ no }
+    </update>
+	
+	<select id="selectEduDetail" resultMap="eduResultMap">
+      SELECT	/* com.greedy.waterfall.board.model.mapper.EduMapper#selectEduDetail() */ 
+             A.BOARD_NO
+           , A.BOARD_UPDATED_DATE
+           , A.BOARD_POSTING_DATE
+           , A.BOARD_TITLE
+           , A.BOARD_CONTENT
+           , A.MEMBER_NO
+           , B.MEMBER_NAME
+           , A.BOARD_COUNT
+           , A.BOARD_POSTING_DATE
+           , A.BOARD_STATUS
+           , A.PROJECT_NO
+        FROM TBL_BOARD A
+        JOIN TBL_MEMBER B ON (A.MEMBER_NO = B.MEMBER_NO)
+       WHERE A.BOARD_NO = #{ no }
+    </select>
+	
+	<delete id="deleteEduBoard" parameterType="_int">
+		DELETE	/* com.greedy.waterfall.board.model.mapper.EduMapper#deleteEduBoard() */ 
+		       FROM TBL_BOARD A
+		 WHERE A.BOARD_NO = #{ no }       
+	</delete>
+	
+	<update id="updateEduBoard" parameterType="com.greedy.waterfall.board.model.dto.EduDTO">
+		UPDATE	/* com.greedy.waterfall.board.model.mapper.EduMapper#updateEduBoard() */
+		       TBL_BOARD A
+		   SET A.BOARD_TITLE = #{ title }
+		     , A.BOARD_CONTENT = #{ content }
+		 WHERE A.BOARD_NO = #{ no }    
+	</update>
+	
+	<select id="selectEduDetailFile" resultMap="eduResultMap">
+		SELECT	/* com.greedy.waterfall.board.model.mapper.EduMapper#selectEduDetailFile() */
+               A.BOARD_NO
+             , A.BOARD_UPDATED_DATE
+             , A.BOARD_POSTING_DATE
+             , A.BOARD_TITLE
+             , A.BOARD_CONTENT
+             , A.MEMBER_NO
+             , B.MEMBER_NAME
+             , A.BOARD_COUNT
+             , A.BOARD_POSTING_DATE
+             , A.BOARD_STATUS
+             , A.PROJECT_NO
+             , C.FILE_NO
+             , C.FILE_ORIGIN_NAME
+             , C.FILE_PATH
+          FROM TBL_BOARD A
+          LEFT JOIN TBL_MEMBER B ON (A.MEMBER_NO = B.MEMBER_NO)
+          LEFT JOIN TBL_FILE C ON (A.BOARD_NO = C.REF_BOARD_NO)
+         WHERE A.BOARD_NO = #{ no }  
+	</select>
+	
+	<select id="findFile" resultMap="fileResultMap">
+		SELECT	/* com.greedy.waterfall.board.model.mapper.EduMapper#findFile() */
+               A.FILE_NO
+             , A.FILE_PATH
+             , A.FILE_ORIGIN_NAME
+             , A.FILE_RANDOM_NAME
+             , A.FILE_STATUS
+             , A.REF_ISSUE_NO
+             , A.REF_TASK_NO
+             , A.REF_BOARD_NO
+             , A.FILE_CATEGORY_NO
+          FROM TBL_FILE A
+         WHERE A.FILE_NO = #{ fileNo }
+	</select>
+	
+	<delete id="deleteEduFile" parameterType="_int">
+	DELETE	/* com.greedy.waterfall.board.model.mapper.EduMapper#deleteEduFile() */ 
+  	  FROM TBL_File A
+     WHERE A.FILE_NO = #{ fileNo }
+	</delete>
+	
+</mapper>  
+  

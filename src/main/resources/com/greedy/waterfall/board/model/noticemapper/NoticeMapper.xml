@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.greedy.waterfall.board.model.noticemapper.NoticeMapper">
+ 	<resultMap type="com.greedy.waterfall.board.model.dto.NoticeDTO" id="noticeResultMap">
+ 	<id property="no" column="BOARD_NO"/>
+ 	<result property="updatedDate" column="BOARD_UPDATED_DATE"/>
+ 	<result property="registedDate" column="BOARD_POSTING_DATE"/>
+ 	<result property="title" column="BOARD_TITLE"/>
+ 	<result property="content" column="BOARD_CONTENT"/>
+ 	<result property="status" column="BOARD_STATUS"/>
+ 	<result property="count" column="BOARD_COUNT"/>
+ 	<result property="boardCategoryNo" column="BOARD_CATEGORY_NO"/>
+ 	<result property="memberNo" column="MEMBER_NO"/>
+ 	<result property="projectNo" column="PROJECT_NO"/>
+ 	<result property="fileOriginName" column="FILE_ORIGIN_NAME"/>
+ 	
+ 	<association property="memberName" resultMap="memberResultMap"/>
+ 	</resultMap>
+ 	
+ 	<resultMap type="com.greedy.waterfall.member.model.dto.MemberDTO" id="memberResultMap">
+		<id property="no" column="MEMBER_NO"/>
+		<result property="name" column="MEMBER_NAME"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.board.model.noticedto.NoticeProjectDTO" id="projectResultMap">
+		<id property="projectNo" column="PROJECT_NO"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.board.model.noticedto.NoticeAttachmentDTO" id="noticeFileResultMap">
+		<id property="fileNo" column="FILE_NO"/>
+		<result property="filePath" column="FILE_PATH"/>
+		<result property="originName" column="FILE_ORIGIN_NAME"/>
+		<result property="randomName" column="FILE_RANDOM_NAME"/>
+		<result property="status" column="FILE_STATUS"/>
+		<result property="noticeNo" column="REF_BOARD_NO"/>
+		<result property="categoryNo" column="FILE_CATEGORY_NO"/>
+	</resultMap>
+	
+	<select id="selectTotalCount" resultType="_int" parameterType="hashmap">
+        SELECT 
+               COUNT(*)
+          FROM TBL_BOARD A
+          
+    	  <where>
+    	  	<if test="searchCondition == 'content'">
+	           A.BOARD_CONTENT LIKE '%' || #{ searchValue } || '%' 	
+			</if>
+			<if test="searchCondition == 'title'">
+	           A.BOARD_TITLE LIKE '%' || #{ searchValue } || '%' 	
+			</if>
+	        AND A.BOARD_STATUS = 'Y'
+	        AND A.BOARD_CATEGORY_NO = 1
+	        AND A.PROJECT_NO = #{ projectNo }
+	      </where>
+	</select>
+	<select id="selectNoticeList" resultMap="noticeResultMap">
+		SELECT 
+               A.RNUM
+             , A.BOARD_NO
+             , A.BOARD_UPDATED_DATE
+             , A.BOARD_POSTING_DATE
+             , A.BOARD_TITLE
+             , A.BOARD_CONTENT
+             , A.MEMBER_NO
+             , D.MEMBER_NAME
+             , A.BOARD_COUNT
+             , A.BOARD_STATUS
+          FROM (SELECT ROWNUM RNUM
+                     , B.BOARD_NO
+                     , B.BOARD_UPDATED_DATE
+                     , B.BOARD_TITLE
+                     , B.BOARD_CONTENT
+                     , B.MEMBER_NO
+                     , B.BOARD_COUNT
+                     , B.BOARD_POSTING_DATE
+                     , B.BOARD_STATUS
+                  FROM (SELECT C.BOARD_NO
+                  			 , C.BOARD_UPDATED_DATE
+                             , C.BOARD_TITLE
+                             , C.BOARD_CONTENT
+                             , C.MEMBER_NO
+                             , C.BOARD_COUNT
+                             , C.BOARD_POSTING_DATE
+                             , C.BOARD_STATUS
+                          FROM TBL_BOARD C
+                         <where>
+                         	<if test="searchCondition == 'title'">
+                         		C.BOARD_TITLE LIKE '%' || #{ searchValue } || '%' 
+                         	</if>
+                         	<if test="searchCondition == 'content'">
+	           				   C.BOARD_CONTENT LIKE '%' || #{ searchValue } || '%' 	
+							</if>
+                           AND C.BOARD_STATUS = 'Y'	
+                           AND C.BOARD_CATEGORY_NO = 1
+                           AND C.PROJECT_NO = #{ projectNo }
+                         </where>
+                          ORDER BY C.BOARD_NO DESC
+                        ) B
+                 <![CDATA[       
+                 WHERE ROWNUM <= #{ endRow }
+                 ]]>
+               ) A
+         JOIN TBL_MEMBER D  ON (A.MEMBER_NO = D.MEMBER_NO)      
+        WHERE A.RNUM >= #{ startRow }
+        ORDER BY A.BOARD_NO DESC   
+	</select>
+	<update id="incrementNoticeCount">
+		UPDATE 
+               TBL_BOARD A
+           SET A.BOARD_COUNT = (SELECT B.BOARD_COUNT
+                                   FROM TBL_BOARD B
+                                  WHERE B.BOARD_NO = #{ no }
+                                ) + 1
+         WHERE A.BOARD_NO = #{ no }
+	</update>
+	
+	<select id="selectNoticeDetail" resultMap="noticeResultMap">
+		SELECT
+		       A.BOARD_NO
+             , A.BOARD_UPDATED_DATE
+             , A.BOARD_POSTING_DATE
+             , A.BOARD_TITLE
+             , A.BOARD_CONTENT
+             , A.MEMBER_NO
+             , B.MEMBER_NAME
+             , A.BOARD_COUNT
+             , A.BOARD_POSTING_DATE
+             , A.BOARD_STATUS
+             , A.PROJECT_NO
+             , C.FILE_ORIGIN_NAME
+          FROM TBL_BOARD A
+          JOIN TBL_MEMBER B ON (A.MEMBER_NO = B.MEMBER_NO)
+          JOIN TBL_FILE C ON(A.BOARD_NO = C.REF_BOARD_NO)
+         WHERE A.BOARD_NO = #{ noticeNo }
+           AND C.FILE_STATUS = 'Y'
+	</select>
+	
+	<insert id="insertNotice" >
+		 INSERT
+	       INTO TBL_BOARD A
+	     (
+	       A.BOARD_NO
+	     , A.BOARD_TITLE
+	     , A.BOARD_CONTENT
+	     , A.MEMBER_NO
+	     , A.PROJECT_NO
+	     , A.BOARD_CATEGORY_NO
+	     )
+         VALUES
+         (
+           BOARD_NO.NEXTVAL
+         , #{ title }
+         , #{ content }
+         , #{ memberNo }
+         , #{ projectNo }
+         , 1
+         )
+        <selectKey keyProperty="no" resultType="Integer" order="AFTER">
+        	SELECT
+        	       BOARD_NO.CURRVAL
+        	  FROM DUAL
+        </selectKey>
+    </insert>
+    
+    <insert id="insertAttachment">
+        INSERT 
+          INTO TBL_FILE A
+        (
+          A.FILE_NO
+        , A.REF_BOARD_NO
+        , A.FILE_ORIGIN_NAME
+        , A.FILE_RANDOM_NAME
+        , A.FILE_PATH
+        , A.FILE_CATEGORY_NO
+        )
+        VALUES 
+        (
+          FILE_NO.NEXTVAL
+        , #{ noticeNo }
+        , #{ originName }
+        , #{ randomName }
+        , #{ filePath }
+        , 1
+        )
+	</insert>
+    
+    <update id="updateNotice" parameterType="com.greedy.waterfall.board.model.dto.NoticeDTO">
+		UPDATE 
+		       TBL_BOARD A
+		   SET A.BOARD_TITLE = #{ title }
+		     , A.BOARD_CONTENT = #{ content }
+		     , A.BOARD_UPDATED_DATE = SYSDATE
+		 WHERE A.BOARD_NO = #{ no }
+	</update>
+	
+	<update id="deleteNotice" parameterType="_int">
+		UPDATE 
+		       TBL_BOARD A
+		   SET A.BOARD_STATUS = 'N'    
+		 WHERE A.BOARD_NO = #{ no }
+	</update>
+	
+	<select id="selectNoticeFile" resultMap="noticeFileResultMap">
+		SELECT
+		       A.FILE_NO
+		     , A.FILE_PATH
+		     , A.FILE_ORIGIN_NAME
+		     , A.FILE_RANDOM_NAME
+		     , A.FILE_CATEGORY_NO
+		  FROM TBL_FILE A
+	 	 WHERE A.FILE_STATUS = 'Y'
+	 	   AND A.REF_BOARD_NO = #{ no }
+	
+	</select>
+	
+        
+ </mapper>

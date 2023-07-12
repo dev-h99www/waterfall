@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.greedy.waterfall.member.model.dao.MemberMapper">
+	<resultMap type="com.greedy.waterfall.member.model.dto.MemberDTO" id="memberResultMap">
+		<id property="no" column="MEMBER_NO"/>
+		<result property="id" column="MEMBER_ID"/>
+		<result property="pwd" column="MEMBER_PWD"/>
+		<result property="phone" column="PHONE"/>
+		<result property="email" column="EMAIL"/>
+		<result property="createDate" column="MEMBER_CREATED_DATE"/>
+		<result property="retiredDate" column="MEMBER_RETIRED_DATE"/>
+		<result property="status" column="MEMBER_STATUS"/>
+		<result property="name" column="MEMBER_NAME"/>
+		<result property="initStatus" column="MEMBER_PWD_INIT_STATUS"/>
+		<result property="role" column="MEMBER_AUTHORIZATION_NO"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.member.model.dto.AdminMemberDTO" id="AdminMemberResultMap">
+		<id property="no" column="MEMBER_NO"/>
+		<result property="id" column="MEMBER_ID"/>
+		<result property="name" column="MEMBER_NAME"/>
+		<result property="phone" column="PHONE"/>
+		<result property="email" column="EMAIL"/>
+		<result property="createDate" column="MEMBER_CREATED_DATE"/>
+		<result property="postDept" column="DEPT_CODE"/>		
+	
+		<association property="dept" resultMap="deptResultMap"/>
+		<association property="team" resultMap="teamResultMap"/>
+		<association property="job" resultMap="jobResultMap"/>		
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.member.model.dto.DeptDTO" id="deptResultMap">
+		<id property="deptCode" column="DEPT_CODE"/>
+		<result property="deptName" column="DEPT_NAME"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.member.model.dto.TeamDTO" id="teamResultMap">
+		<id property="teamCode" column="TEAM_CODE"/>
+		<result property="teamName" column="TEAM_NAME"/>
+		<result property="deptCode" column="DEPT_CODE"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.member.model.dto.JobDTO" id="jobResultMap">
+		<id property="jobCode" column="JOB_CODE"/>
+		<result property="jobName" column="JOB_NAME"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.member.model.dto.DeptHistoryDTO" id="deptHistoryResultMap">
+		<id property="no" column="MEMBER_NO"/>
+		<result property="updateDept" column="DEPT_UPDATED_NAME"/>
+		<result property="deptCode" column="DEPT_CODE"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.member.model.dto.MemberInfoDTO" id="memberInfoResultMap">
+		<id property="historyNo" column="MEM_HISTORY_NO"/>
+		<result property="code" column="MEM_HISTORY_CODE"/>
+		<result property="content" column="MEM_HISTORY_CONTENT"/>
+		<result property="date" column="MEM_HISTORY_UPDATED_DATE"/>
+		<result property="no" column="MEMBER_NO"/>
+	</resultMap>
+	
+	<select id="selectEncryptedPwd" resultType="java.lang.String">
+		SELECT	/*com.greedy.waterfall.member.model.dao.MemberMapper#selectEncryptedPwd()*/
+		       A.MEMBER_PWD
+		  FROM TBL_MEMBER A
+		 WHERE A.MEMBER_STATUS = 'Y'
+		   AND A.MEMBER_ID = #{ id }       
+	</select>
+	
+	<select id="selectMember" resultMap="memberResultMap">
+		SELECT	/*com.greedy.waterfall.member.model.dao.MemberMapper#selectMember()*/
+			   A.MEMBER_NO
+			 , A.MEMBER_ID
+			 , A.MEMBER_PWD
+			 , A.PHONE
+			 , A.EMAIL			
+			 , A.MEMBER_CREATED_DATE
+			 , A.MEMBER_RETIRED_DATE
+			 , A.MEMBER_STATUS
+			 , A.MEMBER_NAME
+			 , A.MEMBER_PWD_INIT_STATUS
+			 , A.MEMBER_AUTHORIZATION_NO
+		  FROM TBL_MEMBER A
+		 WHERE A.MEMBER_STATUS = 'Y'
+		   AND A.MEMBER_ID = #{ id } 	   
+	</select>
+	
+	<select id="selectTotalCount" resultType="_int" parameterType="hashmap">
+		SELECT	/*com.greedy.waterfall.member.model.dao.MemberMapper#selectTotalCount()*/
+		       COUNT(*)
+		  FROM TBL_MEMBER A
+		 WHERE A.MEMBER_STATUS = 'Y'         
+	</select>
+	
+	<select id="findAdminMemberList" resultMap="AdminMemberResultMap">	
+		SELECT	/*com.greedy.waterfall.member.model.dao.MemberMapper#findAdminMemberList()*/
+		       G.RNUM
+		     , G.MEMBER_NO
+		     , G.MEMBER_ID
+		     , G.MEMBER_NAME
+		     , G.PHONE
+		     , G.EMAIL
+		     , G.MEMBER_CREATED_DATE
+		     , G.DEPT_NAME
+		     , G.TEAM_NAME
+		     , G.JOB_NAME
+		  FROM (SELECT ROWNUM RNUM
+		                 , F.MEMBER_NO
+		                 , F.MEMBER_ID
+		                 , F.MEMBER_NAME
+		                 , F.PHONE
+		                 , F.EMAIL
+		                 , F.MEMBER_CREATED_DATE
+		                 , F.DEPT_NAME
+		                 , F.TEAM_NAME
+		                 , F.JOB_NAME
+		              FROM (SELECT A.MEMBER_NO
+		                         , A.MEMBER_ID
+		                         , A.MEMBER_NAME
+		                         , A.PHONE
+		                         , A.EMAIL
+		                         , A.MEMBER_CREATED_DATE
+		                         , C.DEPT_NAME
+		                         , D.TEAM_NAME
+		                         , E.JOB_NAME
+		                      FROM TBL_MEMBER A
+		                      LEFT JOIN TBL_MEMBER_COM_INFO B ON (A.MEMBER_NO = B.MEMBER_NO )
+		                      LEFT JOIN TBL_DEPT C ON (B.DEPT_CODE = C.DEPT_CODE)
+		                      LEFT JOIN TBL_TEAM D ON (B.TEAM_CODE = D.TEAM_CODE)
+		                      LEFT JOIN TBL_JOB_TITLE E ON (B.JOB_CODE = E.JOB_CODE)
+		                     <where>
+		                       <if test="searchCondition == 'name'">
+		                           A.MEMBER_NAME LIKE '%' || #{ searchValue } || '%'
+		                       </if>
+		                       <if test="searchCondition == 'deptName'">
+		                       	   C.DEPT_NAME LIKE '%' || #{ searchValue } || '%' 
+		                       </if>
+		                       AND A.MEMBER_STATUS = 'Y' 
+		                     </where>
+		                     ORDER BY A.MEMBER_NO ASC
+		                 ) F
+		             <![CDATA[    
+		             WHERE ROWNUM <= #{ endRow }
+		             ]]> 
+		           ) G
+		 WHERE G.RNUM >= #{ startRow }
+		 ORDER BY 1 ASC              
+	</select>
+	
+	<select id="findDept" resultMap="deptResultMap">
+		SELECT	/*com.greedy.waterfall.member.model.dao.MemberMapper#findDept()*/ 
+		       A.DEPT_CODE
+		     , A.DEPT_NAME
+		  FROM TBL_DEPT A 		   
+	</select>
+	
+	<select id="findJob" resultMap="jobResultMap">
+		SELECT	/*com.greedy.waterfall.member.model.dao.MemberMapper#findJob()*/ 
+		       A.JOB_CODE
+		     , A.JOB_NAME
+		  FROM TBL_JOB_TITLE A   
+	</select>
+	
+	<select id="findTeamList" resultMap="teamResultMap">
+		SELECT	/*com.greedy.waterfall.member.model.dao.MemberMapper#findTeamList()*/
+		       A.TEAM_CODE
+		     , A.TEAM_NAME
+		  FROM TBL_TEAM A
+		 WHERE A.DEPT_CODE = #{ deptCode }
+	</select>
+	
+	<insert id="adminMemberRegist" parameterType="com.greedy.waterfall.member.model.dto.AdminMemberDTO">
+		INSERT	/*com.greedy.waterfall.member.model.dao.MemberMapper#adminMemberRegist()*/
+		  INTO TBL_MEMBER A
+		(
+		  A.MEMBER_NO
+		, A.MEMBER_ID
+		, A.MEMBER_PWD
+		, A.MEMBER_STATUS
+		, A.MEMBER_NAME
+		, A.MEMBER_PWD_INIT_STATUS
+		, A.MEMBER_AUTHORIZATION_NO
+		)
+		VALUES
+	    (
+	      MEMBER_NO.NEXTVAL
+	    , MEMBER_ID.NEXTVAL
+	    , '$2a$12$k6UZtvzfjYMzS.5vcccTAeeNgjw30cOTeh79H2ZxSogYb31gH414e'
+		, 'Y'	
+	    , #{ name }
+	    , 'Y'
+	    , 2  
+	    )
+	    <selectKey keyProperty="no" resultType="_int" order="AFTER">
+	    	SELECT 
+	    		   MEMBER_NO.CURRVAL
+	          FROM DUAL		   
+	    </selectKey> 	
+	</insert>
+	
+	<insert id="deptMemberRegist">
+		INSERT	/*com.greedy.waterfall.member.model.dao.MemberMapper#deptMemberRegist()*/
+		  INTO TBL_MEM_DEPT_HISTORY A
+		(
+		  A.DEPT_MEM_HISTORY_NO
+		, A.DEPT_CODE
+		, A.MEMBER_NO
+		, A.DEPT_UPDATED_NAME  	
+		)
+		VALUES
+		(
+		  DEPT_MEM_HISTORY_NO.NEXTVAL
+		, #{ dept.deptCode }
+		, #{ no }
+		, #{ dept.deptCode } 
+		)  
+	</insert>
+	
+	<insert	id="teamMemberRegist">
+		INSERT	/*com.greedy.waterfall.member.model.dao.MemberMapper#teamMemberRegist()*/
+		  INTO TBL_MEM_TEAM_HISTORY A
+		(
+		  A.TEAM_MEM_HISTORY_NO
+		, A.TEAM_CODE
+		, A.MEMBER_NO
+		, A.TEAM_UPDATED_NAME  	
+		) 
+		VALUES
+		(
+		  TEAM_MEM_HISTORY_NO.NEXTVAL
+		, #{ team.teamCode }
+		, #{ no }
+		, #{ team.teamCode } 
+		) 
+	</insert>
+	
+	<insert id="jobMemberRegist">
+		INSERT	/*com.greedy.waterfall.member.model.dao.MemberMapper#jobMemberRegist()*/
+		  INTO TBL_MEM_JOB_HISTORY A
+		(
+		  A.JOB_MEM_HISTORY_NO
+		, A.JOB_CODE
+		, A.MEMBER_NO
+		, A.JOB_UPDATED_TITLE  
+		)
+		VALUES
+		(
+		  JOB_MEM_HISTORY_NO.NEXTVAL
+		, #{ job.jobCode }
+		, #{ no }
+		, #{ job.jobCode }  
+		)  
+	</insert>
+	
+	<insert id="memberRegist">
+		INSERT	/*com.greedy.waterfall.member.model.dao.MemberMapper#memberRegist()*/
+		  INTO TBL_MEMBER_COM_INFO A
+		(
+		  A.MEMBER_NO
+		, A.DEPT_CODE
+		, A.TEAM_CODE
+		, A.JOB_CODE  
+		)
+		VALUES
+		(
+		  #{ no }
+		, #{ dept.deptCode }
+		, #{ team.teamCode }
+		, #{ job.jobCode }  
+		)  
+	</insert>
+	
+	<select id="adminMemberModify" resultMap="AdminMemberResultMap" resultType="com.greedy.waterfall.member.model.dto.AdminMemberDTO">
+		SELECT	/*com.greedy.waterfall.member.model.dao.MemberMapper#adminMemberModify()*/
+		       A.MEMBER_NAME
+		     , A.MEMBER_ID
+		     , A.MEMBER_NO
+		     , C.DEPT_NAME
+		     , D.TEAM_NAME
+		     , E.JOB_NAME
+		  FROM TBL_MEMBER A
+		  JOIN TBL_MEMBER_COM_INFO B ON (B.MEMBER_NO = A.MEMBER_NO)     
+		  JOIN TBL_DEPT C ON (C.DEPT_CODE = B.DEPT_CODE)
+		  JOIN TBL_TEAM D ON (D.TEAM_CODE = B.TEAM_CODE)
+		  JOIN TBL_JOB_TITLE E ON (E.JOB_CODE = B.JOB_CODE)
+		 WHERE A.MEMBER_ID = #{ id }      
+	</select>
+	
+	<select id="adminDeptMember" resultMap="deptResultMap">
+		SELECT	/*com.greedy.waterfall.member.model.dao.MemberMapper#adminDeptMember()*/
+		       A.DEPT_CODE
+		     , A.DEPT_NAME
+		  FROM TBL_DEPT A     
+	</select>
+	
+	<select id="adminTeamMember" resultMap="teamResultMap">
+		SELECT	/*com.greedy.waterfall.member.model.dao.MemberMapper#adminTeamMember()*/
+		       A.TEAM_CODE
+		     , A.TEAM_NAME
+		  FROM TBL_TEAM A  
+	</select>
+	
+	<select id="adminJobMember" resultMap="jobResultMap">
+		SELECT	/*com.greedy.waterfall.member.model.dao.MemberMapper#adminJobMember()*/
+		       A.JOB_CODE
+		     , A.JOB_NAME
+		  FROM TBL_JOB_TITLE A      
+	</select>
+	
+	<update id="adminMember">
+		UPDATE	/*com.greedy.waterfall.member.model.dao.MemberMapper#adminMember()*/
+		       TBL_MEMBER A
+		   SET A.MEMBER_NAME = #{ name }
+		 WHERE A.MEMBER_ID = #{ id }        
+	</update>
+	
+	<insert id="adminDept" parameterType="com.greedy.waterfall.member.model.dto.AdminMemberDTO">
+		<selectKey keyProperty="postDept,no" resultType="com.greedy.waterfall.member.model.dto.AdminMemberDTO" order="BEFORE">
+	    	SELECT
+	    		   C.DEPT_CODE AS postDept
+	    		 , C.MEMBER_NO AS no
+	          FROM ( SELECT
+ 						    A.DEPT_CODE
+ 						  , A.MEMBER_NO
+ 					   FROM TBL_MEM_DEPT_HISTORY A
+ 					   JOIN TBL_MEMBER B ON (B.MEMBER_NO = A.MEMBER_NO)
+ 					  WHERE B.MEMBER_ID = #{ id }
+ 					  ORDER BY A.DEPT_UPDATED_DATE DESC  	   	             
+ 	               )C
+ 	          WHERE ROWNUM = 1      		    		   
+	    </selectKey> 
+		INSERT	 /*com.greedy.waterfall.member.model.dao.MemberMapper#adminDept()*/
+		  INTO TBL_MEM_DEPT_HISTORY A   
+		(
+		  A.DEPT_MEM_HISTORY_NO
+		, A.DEPT_CODE
+		, A.MEMBER_NO
+		, A.DEPT_UPDATED_NAME      
+		)      
+		VALUES
+		(
+		  DEPT_MEM_HISTORY_NO.NEXTVAL
+		, #{ postDept }
+		, #{ no }
+		, #{ dept.deptCode }  
+		)        
+	</insert>
+	
+	<insert id="adminTeam" parameterType="com.greedy.waterfall.member.model.dto.AdminMemberDTO">
+		<selectKey keyProperty="postTeam" resultType="com.greedy.waterfall.member.model.dto.AdminMemberDTO" order="BEFORE">
+			SELECT
+			       B.TEAM_CODE AS postTeam
+			  FROM ( SELECT
+			                A.TEAM_CODE
+			           FROM TBL_MEM_TEAM_HISTORY A   
+			          WHERE A.MEMBER_NO = #{ no }
+			          ORDER BY A.TEAM_UPDATED_DATE DESC
+			        ) B
+			  WHERE ROWNUM = 1            
+		</selectKey>
+		INSERT	/*com.greedy.waterfall.member.model.dao.MemberMapper#adminTeam()*/
+		  INTO TBL_MEM_TEAM_HISTORY A
+		(
+		  A.TEAM_MEM_HISTORY_NO
+		, A.TEAM_CODE
+		, A.MEMBER_NO
+		, A.TEAM_UPDATED_NAME  
+		)
+		VALUES
+		(
+		  TEAM_MEM_HISTORY_NO.NEXTVAL
+		, #{ postTeam }
+		, #{ no }
+		, #{ team.teamCode }   
+		)   
+	</insert>
+	
+	<insert id="adminJob" parameterType="com.greedy.waterfall.member.model.dto.AdminMemberDTO">
+		<selectKey keyProperty="postJob" resultType="com.greedy.waterfall.member.model.dto.AdminMemberDTO" order="BEFORE">
+			SELECT
+			       B.JOB_CODE AS postJob
+			  FROM ( SELECT
+			                A.JOB_CODE
+			           FROM TBL_MEM_JOB_HISTORY A
+			          WHERE A.MEMBER_NO = #{ no }
+			          ORDER BY A.JOB_UPDATED_DATE DESC			                
+			       ) B
+			 WHERE ROWNUM = 1          
+		</selectKey>
+		INSERT	/*com.greedy.waterfall.member.model.dao.MemberMapper#adminJob()*/
+		  INTO TBL_MEM_JOB_HISTORY A
+		(
+		  A.JOB_MEM_HISTORY_NO
+		, A.JOB_CODE
+		, A.MEMBER_NO
+		, A.JOB_UPDATED_TITLE		  
+		)
+		VALUES
+		(
+		  JOB_MEM_HISTORY_NO.NEXTVAL
+		, #{ postJob }
+		, #{ no }
+		, #{ job.jobCode }  
+		)  
+	</insert>
+		
+	<update id="oneMember" parameterType="com.greedy.waterfall.member.model.dto.AdminMemberDTO">
+		UPDATE	/*com.greedy.waterfall.member.model.dao.MemberMapper#oneMember()*/
+		       TBL_MEMBER_COM_INFO A
+		   SET A.DEPT_CODE = #{ dept.deptCode }
+		     , A.TEAM_CODE = #{ team.teamCode }
+		     , A.JOB_CODE = #{ job.jobCode }
+		 WHERE A.MEMBER_NO = #{ no }        
+	</update>
+	
+	<update id="removeMember">
+		UPDATE	/*com.greedy.waterfall.member.model.dao.MemberMapper#removeMember()*/
+		       TBL_MEMBER A
+		   SET A.MEMBER_STATUS = 'N'
+		     , A.MEMBER_RETIRED_DATE = SYSDATE  
+		 WHERE A.MEMBER_ID = #{ id }       
+	</update>
+	
+	<delete id="removeMemberInfo" parameterType="com.greedy.waterfall.member.model.dto.AdminMemberDTO"> 
+		DELETE	/*com.greedy.waterfall.member.model.dao.MemberMapper#removeMemberInfo()*/  
+		  FROM TBL_MEMBER_COM_INFO
+		 WHERE MEMBER_NO IN ( SELECT
+		                             A.MEMBER_NO
+		                        FROM TBL_MEMBER A
+		                       WHERE A.MEMBER_ID = #{ id }
+	                    	)            
+	</delete>
+
+	<select id="selectOne" resultType="java.lang.String">
+		SELECT	/*com.greedy.waterfall.member.model.dao.MemberMapper#selectOne()*/
+		       A.MEMBER_PWD
+		  FROM TBL_MEMBER A
+		 WHERE MEMBER_ID = #{ id }       
+	</select>	
+	
+	<update id="pwUpdate">
+		UPDATE	/*com.greedy.waterfall.member.model.dao.MemberMapper#pwUpdate()*/
+		       TBL_MEMBER A
+		   SET A.MEMBER_PWD = #{ pwd }
+		 WHERE A.MEMBER_ID = #{ id }  
+	</update>
+	
+	<update id="memberInfoUpdate">
+		UPDATE	/*com.greedy.waterfall.member.model.dao.MemberMapper#memberInfoUpdate()*/
+			   TBL_MEMBER A
+		   SET A.EMAIL = #{ email }
+		     , A.PHONE = #{ phone }
+		 WHERE A.MEMBER_ID = #{ id }   		   
+	</update>
+	
+	<insert id="memberInfoPhone" parameterType="com.greedy.waterfall.member.model.dto.MemberDTO">
+		<selectKey keyProperty="no" resultType="com.greedy.waterfall.member.model.dto.MemberDTO" order="BEFORE">
+			SELECT
+			       A.MEMBER_NO AS no
+			  FROM TBL_MEMBER A
+			 WHERE A.MEMBER_ID = #{ id } 		          
+		</selectKey>
+		INSERT	/*com.greedy.waterfall.member.model.dao.MemberMapper#memberInfoPhone()*/
+		  INTO TBL_MEMBER_HISTORY A
+		(
+		  A.MEM_HISTORY_NO
+		, A.MEM_HISTORY_CODE
+		, A.MEM_HISTORY_CONTENT
+		, A.MEMBER_NO
+		, A.MEM_HISTORY_UPDATED_DATE 	
+		)
+		VALUES
+		(
+		  MEM_HISTORY_NO.NEXTVAL
+		, '핸드폰번호'
+		, #{ phone }
+		, #{ no }  
+		, sysdate 
+		)  
+	</insert>
+	
+	<insert id="memberInfoEmail" parameterType="com.greedy.waterfall.member.model.dto.MemberDTO">
+		<selectKey keyProperty="no" resultType="com.greedy.waterfall.member.model.dto.MemberDTO" order="BEFORE">
+			SELECT
+			       A.MEMBER_NO AS no
+			  FROM TBL_MEMBER A
+			 WHERE A.MEMBER_ID = #{ id }   
+		</selectKey>
+		INSERT	/*com.greedy.waterfall.member.model.dao.MemberMapper#memberInfoEmail()*/
+		  INTO TBL_MEMBER_HISTORY A
+		(
+		  A.MEM_HISTORY_NO
+		, A.MEM_HISTORY_CODE
+		, A.MEM_HISTORY_CONTENT
+		, A.MEMBER_NO
+		, A.MEM_HISTORY_UPDATED_DATE 	
+		)
+		VALUES
+		(
+		  MEM_HISTORY_NO.NEXTVAL
+		, '이메일'
+		, #{ email }
+		, #{ no }  
+		, sysdate 
+		)  
+	</insert>
+</mapper>

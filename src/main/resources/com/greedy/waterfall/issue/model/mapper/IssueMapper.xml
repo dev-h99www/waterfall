@@ -1,0 +1,724 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.greedy.waterfall.issue.model.mapper.IssueMapper">
+     <resultMap type="com.greedy.waterfall.issue.model.dto.IssueDTO" id="issueResultMap">
+        <id property="no" column="ISSUE_NO"></id>
+        <result property="rnum" column="RNUM"/>
+        <result property="name" column="ISSUE_NAME"/>
+        <result property="createdDate" column="ISSUE_CREATED_DATE"/>
+        <result property="progressStatus" column="ISSUE_PROGRESS_STATUS"/>
+        <result property="importance" column="ISSUE_IMPORTANCE"/>
+        <result property="content" column="ISSUE_CONTENT"/>
+        <result property="answer" column="ISSUE_ANSWER"/>
+        <result property="deadline" column="ISSUE_DEADLINE"/>
+        <result property="completedDate" column="ISSUE_COMPLETED_DATE"/>
+        <result property="status" column="ISSUE_STATUS"/>
+        <result property="registerNo" column="ISSUE_REGISTER"/>
+        <result property="managerNo" column="ISSUE_MANAGER"/>
+        <result property="projectNo" column="PROJECT_NO"/>
+        <result property="taskNo" column="TASK_NO"/>
+        <result property="taskCodeManageName" column="taskCodeManageName"/>
+        
+        <association property="file" resultMap="fileResultMap"></association>
+        <association property="register" resultMap="registerResultMap"/>
+        <association property="manager" resultMap="managerResultMap"/>
+        <association property="project" resultMap="projectResultMap"/>
+        <association property="task" resultMap="taskResultMap"/>
+        <association property="taskCode" resultMap="taskCodeResultMap"/>
+     </resultMap>
+     
+     <resultMap type="com.greedy.waterfall.issue.model.dto.IssueRegisterDTO" id="registerResultMap">
+     	<id property="no" column="ISSUE_REGISTER"/>
+     	<result property="name" column="REGISTER_NAME"/>
+     </resultMap>
+     
+     <resultMap type="com.greedy.waterfall.issue.model.dto.IssueManagerDTO" id="managerResultMap">
+     	<id property="no" column="ISSUE_MANAGER"/>
+     	<result property="name" column="MANAGER_NAME"/>
+     </resultMap>
+  
+  	<resultMap type="com.greedy.waterfall.issue.model.dto.IssueProjectDTO" id="projectResultMap">
+  		<id property="no" column="PROJECT_NO"/>
+  		<result property="name" column="PROJECT_NAME"/>
+  	</resultMap>
+  	
+  	<resultMap type="com.greedy.waterfall.issue.model.dto.IssueTaskDTO" id="taskResultMap">
+  		<id property="no" column="TASK_NO"/>
+  		<result property="taskCategoryCode" column="TASK_CATEGORY_CODE"/>
+  		<result property="taskRefNo" column="TASK_REF_NO"/>
+  	</resultMap>
+  	
+  	<resultMap type="com.greedy.waterfall.issue.model.dto.IssueTaskCodeManageDTO" id="taskCodeResultMap">
+  		<id property="taskCategoryCode" column="TASK_CATEGORY_CODE"/>
+  		<result property="taskCategoryName" column="TASK_CATEGORY_NAME"/>
+  	</resultMap>
+  	
+  	<resultMap type="com.greedy.waterfall.issue.model.dto.ProjectIssueCountDTO" id="projectIssueCountResultMap">
+  		<id property="projectNo" column="PROJECT_NO"/>
+  		<result property="projectName" column="PROJECT_NAME"/>
+  		<result property="allIssueCount" column="ALL_ISSUE_COUNT"/>
+  		<result property="pendingIssueCount" column="PENDING_ISSUE_COUNT"/>
+  		<result property="processingIssueCount" column="PROCESSING_ISSUE_COUNT"/>
+  		<result property="completedIssueCount" column="COMPLETED_ISSUE_COUNT"/>
+  		<result property="managerNo" column="PM_NO"/>
+  		<result property="pmName" column="PM_NAME"/>
+  		
+  		<association property="project" resultMap="projectResultMap"/>
+  	</resultMap>
+  	
+  	<resultMap type="com.greedy.waterfall.issue.model.dto.TaskIssueCountDTO" id="taskIssueCountResultMap">
+  		<id property="taskNo" column="TASK_NO"/>
+  		<result property="projectNo" column="PROJECT_NO"/>
+  		<result property="allIssueCount" column="ALL_TASK_ISSUE_COUNT"/>
+  		<result property="pendingIssueCount" column="PENDING_TASK_ISSUE_COUNT"/>
+  		<result property="processingIssueCount" column="PROCESSING_TASK_ISSUE_COUNT"/>
+  		<result property="completedIssueCount" column="COMPLETED_TASK_ISSUE_COUNT"/>
+  		<result property="managerNo" column="MEMBER_NO"/>
+  		<result property="managerName" column="MEMBER_NAME"/>
+  		<result property="taskCodeManageName" column="TASK_CATEGORY_NAME"/>
+  		
+  		<association property="task" resultMap="taskResultMap"/>
+  		<association property="taskCode" resultMap="taskCodeResultMap"/>
+  		<association property="manager" resultMap="managerResultMap"/>
+  		<association property="project" resultMap="projectResultMap"/>
+  	</resultMap>
+  	
+  	<resultMap type="com.greedy.waterfall.issue.model.dto.ProjectMemberDTO" id="projectMemberResultMap">
+  		<id property="memberNo" column="MEMBER_NO"/>
+  		<result property="memberName" column="MEMBER_NAME"/>
+  	</resultMap>
+  	
+  	<resultMap type="com.greedy.waterfall.issue.model.dto.IssueFileDTO" id="fileResultMap">
+  		<id property="no" column="FILE_NO"/>
+  		<result property="refIssueNo" column="REF_ISSUE_NO"></result>
+  		<result property="savedPath" column="FILE_PATH"></result>
+  		<result property="originalName" column="FILE_ORIGIN_NAME"></result>
+  		<result property="randomName" column="FILE_RANDOM_NAME"></result>
+  		<result property="status" column="FILE_STATUS"></result>
+  	</resultMap>
+  	
+  	<resultMap type="com.greedy.waterfall.issue.model.dto.IssueNotificationDTO" id="notificationResultMap">
+  		<id property="issueHistoryNo" column="ISSUE_HISTORY_NO"/>
+  		<result property="issueProgressStatus" column="ISSUE_PROGRESS_STATUS"/>
+  		<result property="issueUpdatedDate" column="ISSUE_UPDATED_DATE"/>
+  		<result property="issueNo" column="ISSUE_NO"/>
+  		<result property="issueRegisterNo" column="ISSUE_REGISTER"/>
+  		<result property="issueManagerNo" column="ISSUE_MANAGER"/>
+  		<result property="issueUpdatedContent" column="ISSUE_UPDATED_CONTENT"/>
+  		<result property="issueReadCheckNo" column="ISSUE_READ_CHECK"/>
+  		<result property="issueProjectNo" column="PROJECT_NO"/>
+  		<result property="issueReader" column="ISSUE_READER"/>
+  	</resultMap>
+  	
+  <select id="selectIssueList" parameterType="_int" resultMap="issueResultMap">
+ 	SELECT /* com.greedy.com.greedy.waterfall.issue.model.mapper.IssueMapper#selectAllIssueList() */
+            A.ISSUE_NO
+          , A.ISSUE_NAME
+          , A.ISSUE_CREATED_DATE
+		  , A.ISSUE_PROGRESS_STATUS
+		  , A.ISSUE_IMPORTANCE
+		  , A.ISSUE_CONTENT
+		  , A.ISSUE_ANSWER
+		  , A.ISSUE_DEADLINE
+		  , A.ISSUE_COMPLETED_DATE 
+		  , A.ISSUE_STATUS
+		  , A.ISSUE_REGISTER
+		  , A.PROJECT_NO
+		  , A.ISSUE_MANAGER 
+		  , A.TASK_NO
+		  , D.MEMBER_NAME AS REGISTER_NAME
+		  , H.MEMBER_NAME AS MANAGER_NAME
+		  , E.PROJECT_NAME
+		  , G.TASK_CATEGORY_NAME
+     FROM TBL_ISSUE A 
+     LEFT JOIN TBL_MEMBER D ON (A.ISSUE_REGISTER = D.MEMBER_NO)
+     LEFT JOIN TBL_PROJECT E ON (A.PROJECT_NO = E.PROJECT_NO)
+     LEFT JOIN TBL_TASK F ON (A.TASK_NO = F.TASK_NO)
+     LEFT JOIN TBL_TASK_CODE_MANAGE G ON (F.TASK_CATEGORY_CODE = G.TASK_CATEGORY_CODE)
+     LEFT JOIN TBL_MEMBER H ON (A.ISSUE_MANAGER = H.MEMBER_NO)
+    WHERE A.TASK_NO = #{ taskNo }
+      AND A.ISSUE_STATUS = 'Y'
+    ORDER BY 1 DESC
+   </select>
+   
+   	<!-- 프로젝트 목록과 해당 프로젝트의 이슈 수를 조회 하기 위한 쿼리문 -->
+  	<select id="selectAllProjectList" resultMap="projectIssueCountResultMap">
+  	      SELECT DISTINCT /* com.greedy.com.greedy.waterfall.issue.model.mapper.IssueMapper#selectAllProjectList() */
+                 A.PROJECT_NO
+               , A.PROJECT_NAME
+               , ( SELECT
+                          COUNT(C.ISSUE_NO)
+                     FROM TBL_ISSUE C
+                     JOIN TBL_TASK K ON (C.TASK_NO = K.TASK_NO) 
+                    WHERE C.ISSUE_STATUS = 'Y'
+                      AND K.TASK_STATUS = 'Y'
+                      AND C.PROJECT_NO = B.PROJECT_NO
+                 ) AS ALL_ISSUE_COUNT
+               , (SELECT
+                         COUNT(C.ISSUE_NO)
+                    FROM TBL_ISSUE C
+                    LEFT JOIN TBL_TASK K ON (C.TASK_NO = K.TASK_NO) 
+                   WHERE C.ISSUE_STATUS = 'Y'
+                     AND K.TASK_STATUS = 'Y'
+                     AND C.PROJECT_NO = B.PROJECT_NO
+                  ) AS ALL_ISSUE_COUNT
+                , ( SELECT
+                           COUNT(D.ISSUE_NO) 
+                      FROM TBL_ISSUE D
+                      LEFT JOIN TBL_TASK K ON (D.TASK_NO = K.TASK_NO)
+                     WHERE D.ISSUE_STATUS = 'Y'
+                       AND K.TASK_STATUS = 'Y'
+                       AND D.ISSUE_PROGRESS_STATUS = '대기중'
+                       AND D.PROJECT_NO = B.PROJECT_NO
+                  ) AS PENDING_ISSUE_COUNT
+                , ( SELECT
+                           COUNT(E.ISSUE_NO)  
+                      FROM TBL_ISSUE E
+                      LEFT JOIN TBL_TASK K ON (E.TASK_NO = K.TASK_NO)
+                     WHERE E.ISSUE_STATUS = 'Y'
+                       AND K.TASK_STATUS = 'Y'
+                       AND E.ISSUE_PROGRESS_STATUS = '처리중'
+                       AND E.PROJECT_NO = B.PROJECT_NO
+                   ) AS PROCESSING_ISSUE_COUNT
+                 , ( SELECT
+                            COUNT(F.ISSUE_NO) 
+                       FROM TBL_ISSUE F
+                       LEFT JOIN TBL_TASK K ON (F.TASK_NO = K.TASK_NO)
+                      WHERE F.ISSUE_STATUS = 'Y'
+                        AND K.TASK_STATUS = 'Y'
+                        AND F.ISSUE_PROGRESS_STATUS = '완료'
+                        AND F.PROJECT_NO = B.PROJECT_NO
+                    ) AS COMPLETED_ISSUE_COUNT
+            , H.MEMBER_NO AS PM_NO
+            , H.MEMBER_NAME AS PM_NAME
+           FROM TBL_PROJECT A
+           LEFT JOIN TBL_ISSUE B ON (A.PROJECT_NO = B.PROJECT_NO)
+           LEFT JOIN TBL_ROLE_ASSIGNMENT_HISTORY G ON (A.PROJECT_NO = G.PROJECT_NO)
+           LEFT JOIN TBL_MEMBER H ON (G.MEMBER_NO = H.MEMBER_NO)
+          WHERE A.PROJECT_STATUS = 'Y'
+            AND G.ROLE_HISTORY_NO IN (SELECT MAX(J.ROLE_HISTORY_NO)
+                                        FROM TBL_ROLE_ASSIGNMENT_HISTORY J
+                                       WHERE J.ROLE_NO = 8
+                                       GROUP BY J.PROJECT_NO
+                                     )
+          ORDER BY 1 DESC
+  	</select>
+  	
+  	<select id="selectIssuesOfTask" parameterType="_int" resultMap="taskIssueCountResultMap" >
+  		   SELECT DISTINCT
+                  A.TASK_NO
+                , C.TASK_CATEGORY_NAME
+                , I.MEMBER_NAME
+			    , ( SELECT
+                           COUNT(D.ISSUE_NO)
+	                  FROM TBL_ISSUE D 
+                     WHERE D.ISSUE_STATUS = 'Y'
+                       AND D.TASK_NO = B.TASK_NO
+                  ) AS ALL_TASK_ISSUE_COUNT
+                , ( SELECT
+                           COUNT(E.ISSUE_NO) 
+                      FROM TBL_ISSUE E
+                     WHERE E.ISSUE_STATUS = 'Y'
+                       AND E.ISSUE_PROGRESS_STATUS = '대기중'
+                       AND E.TASK_NO = B.TASK_NO
+                  ) AS PENDING_TASK_ISSUE_COUNT
+                , ( SELECT
+                           COUNT(F.ISSUE_NO)  
+                      FROM TBL_ISSUE F
+                     WHERE F.ISSUE_STATUS = 'Y'
+                       AND F.ISSUE_PROGRESS_STATUS = '처리중'
+                       AND F.TASK_NO = B.TASK_NO
+                   ) AS PROCESSING_TASK_ISSUE_COUNT
+                 , ( SELECT
+                            COUNT(G.ISSUE_NO) 
+                       FROM TBL_ISSUE G
+                      WHERE G.ISSUE_STATUS = 'Y'
+                        AND G.ISSUE_PROGRESS_STATUS = '완료'
+                        AND G.TASK_NO = B.TASK_NO
+                    ) AS COMPLETED_TASK_ISSUE_COUNT
+            FROM TBL_TASK A
+            JOIN TBL_ISSUE B ON (A.TASK_NO = B.TASK_NO)
+            JOIN TBL_TASK_CODE_MANAGE C ON (A.TASK_CATEGORY_CODE = C.TASK_CATEGORY_CODE)
+            LEFT JOIN TBL_PROJECT H ON (A.PROJECT_NO = H.PROJECT_NO)
+            LEFT JOIN TBL_MEMBER I ON (A.MEMBER_NO = I.MEMBER_NO)
+           WHERE H.PROJECT_STATUS = 'Y'
+             AND A.TASK_STATUS = 'Y'
+	         AND A.PROJECT_NO = #{ projectNo }
+	       ORDER BY 1 DESC
+  	</select>
+  	
+  	<insert id="registIssue" parameterType="com.greedy.waterfall.issue.model.dto.IssueDTO">
+  		INSERT
+		  INTO TBL_ISSUE A
+	    ( 
+		  A.ISSUE_NO
+	    , A.ISSUE_NAME
+	    , A.ISSUE_PROGRESS_STATUS
+		, A.ISSUE_IMPORTANCE
+		, A.ISSUE_CONTENT
+		, A.ISSUE_CREATED_DATE
+	    , A.ISSUE_DEADLINE
+	    , A.ISSUE_REGISTER
+		, A.PROJECT_NO
+		, A.TASK_NO
+		)
+		VALUES
+		(
+		  ISSUE_NO.NEXTVAL
+		, #{ name }
+		, #{ progressStatus }
+		, #{ importance }
+		, #{ content }
+		, #{ createdDate }
+		, #{ deadline }
+		, #{ registerNo }
+		, #{ projectNo }
+		, #{ taskNo }
+	    )
+	    <selectKey keyProperty="no" resultType="_int" order="AFTER">
+        	SELECT
+        	       ISSUE_NO.CURRVAL
+        	  FROM DUAL
+        </selectKey>
+  	</insert>
+  	
+  	<!-- 게시물의 첨부파일을 저장한다. -->
+	<insert id="registIssueFile" parameterType="com.greedy.waterfall.issue.model.dto.IssueFileDTO">
+        INSERT /* com.greedy.com.greedy.waterfall.issue.model.mapper.IssueMapper#registIssueFile() */
+          INTO TBL_FILE A
+        (
+          A.FILE_NO
+        , A.FILE_PATH
+        , A.FILE_ORIGIN_NAME
+        , A.FILE_RANDOM_NAME
+        , A.REF_ISSUE_NO
+        , A.FILE_CATEGORY_NO
+        )
+        VALUES
+        ( 
+          FILE_NO.NEXTVAL
+        , #{ savedPath }
+        , #{ originalName }
+        , #{ randomName }
+        , #{ refIssueNo }
+        , 3
+        ) 
+	</insert>
+	
+	<select id="selectIssueDetail" resultMap="issueResultMap">
+	  SELECT /* com.greedy.com.greedy.waterfall.issue.model.mapper.IssueMapper#selectIssueDetail() */
+	         A.ISSUE_NO
+	       , A.ISSUE_NAME
+	       , A.ISSUE_CREATED_DATE
+	       , A.ISSUE_PROGRESS_STATUS
+	       , A.ISSUE_IMPORTANCE
+	       , A.ISSUE_CONTENT
+	       , A.ISSUE_ANSWER
+	       , A.ISSUE_DEADLINE
+	       , A.ISSUE_COMPLETED_DATE
+	       , A.ISSUE_REGISTER
+	       , A.PROJECT_NO
+	       , A.TASK_NO
+	       , B.MEMBER_NAME AS REGISTER_NAME
+	       , A.ISSUE_MANAGER
+	       , C.MEMBER_NAME AS MANAGER_NAME
+	       , D.FILE_NO
+	       , D.FILE_ORIGIN_NAME
+	       , D.FILE_PATH
+	   FROM TBL_ISSUE A
+  LEFT JOIN TBL_MEMBER B ON (A.ISSUE_REGISTER = B.MEMBER_NO)
+  LEFT JOIN TBL_MEMBER C ON (A.ISSUE_MANAGER = C.MEMBER_NO)
+  LEFT JOIN TBL_FILE D ON (A.ISSUE_NO = D.REF_ISSUE_NO)
+ WHERE A.ISSUE_STATUS = 'Y'
+   AND A.ISSUE_NO = #{ no }
+	</select>
+	
+	<select id="selectProjectMember" resultMap="projectMemberResultMap">
+	   SELECT /* com.greedy.com.greedy.waterfall.issue.model.mapper.IssueMapper#selectProjectMember() */
+	   DISTINCT 
+	   		     A.MEMBER_NO
+	           , B.MEMBER_NAME
+	       FROM TBL_ROLE_ASSIGNMENT_HISTORY A
+	       JOIN TBL_MEMBER B ON (A.MEMBER_NO = B.MEMBER_NO)
+	      WHERE PROJECT_NO = #{ projectNo }
+	      ORDER BY B.MEMBER_NAME
+	</select>
+	
+	<select id="findFile" resultMap="fileResultMap">
+        SELECT /* com.greedy.waterfall.issue.model.mapper.IssueMapper#fineFile() */
+               A.FILE_NO
+             , A.FILE_PATH
+             , A.FILE_ORIGIN_NAME
+             , A.FILE_RANDOM_NAME
+             , A.FILE_STATUS
+             , A.REF_ISSUE_NO
+             , A.REF_TASK_NO
+             , A.REF_ISSUE_NO
+          FROM TBL_FILE A
+         WHERE A.FILE_NO = #{ fileNo }
+	</select>
+	
+	<delete id="deleteIssueFile" parameterType="_int">
+     DELETE /* com.greedy.waterfall.issue.model.issuemapper.IssueMapper#deleteIssueFile() */
+  	   FROM TBL_File A
+      WHERE A.FILE_NO = #{ fileNo }
+	</delete>
+	
+	<update id="updateIssue" parameterType="com.greedy.waterfall.issue.model.dto.IssueDTO">
+	 UPDATE /* com.greedy.waterfall.issue.model.issuemapper.IssueMapper#updateIssue() */
+	        TBL_ISSUE A
+	    SET A.ISSUE_NO = #{ no }
+	      , A.ISSUE_NAME = #{ name }  
+	      , A.ISSUE_CREATED_DATE = #{ createdDate }
+	      <if test="completedDate != null">
+	      , A.ISSUE_COMPLETED_DATE = #{ completedDate }
+	      </if>
+	      <if test="completedDate == null">
+	      , A.ISSUE_COMPLETED_DATE = NULL
+	      </if>
+	      , A.ISSUE_PROGRESS_STATUS = #{ progressStatus }
+	      , A.ISSUE_IMPORTANCE = #{ importance }
+	      , A.ISSUE_CONTENT = #{ content }
+	      , A.ISSUE_ANSWER = #{ answer }
+	      <if test="deadline != null">
+	      , A.ISSUE_DEADLINE = #{ deadline }
+	      </if>
+	      , A.ISSUE_REGISTER = #{ registerNo }
+	      <if test="managerNo >= 1">
+	      , A.ISSUE_MANAGER = #{ managerNo } 
+	      </if>  
+	       <if test="1 > managerNo"> 
+	      , A.ISSUE_MANAGER = NULL
+	      </if>
+	  WHERE A.ISSUE_NO = #{ no }
+	</update>
+	
+	<update id="deleteIssue" parameterType="com.greedy.waterfall.issue.model.dto.IssueDTO">
+		UPDATE /* com.greedy.waterfall.issue.model.issuemapper.IssueMapper#deleteIssue() */
+		       TBL_ISSUE A
+		   SET A.ISSUE_STATUS = 'N'
+		 WHERE A.ISSUE_NO = #{ no }
+	</update>
+	
+	<insert id="registIssueHistory" parameterType="com.greedy.waterfall.issue.model.dto.IssueDTO">
+	<selectKey keyProperty="taskCodeManageName,loginMemberName" resultType="com.greedy.waterfall.issue.model.dto.IssueDTO" order="BEFORE">
+			SELECT 
+			DISTINCT 
+	                 C.TASK_CATEGORY_NAME AS taskCodeManageName
+	               , D.MEMBER_NAME AS loginMemberName
+	            FROM TBL_ISSUE A
+	            JOIN TBL_TASK B ON (A.TASK_NO = B.TASK_NO)
+	            JOIN TBL_TASK_CODE_MANAGE C ON (B.TASK_CATEGORY_CODE = C.TASK_CATEGORY_CODE)
+	            JOIN TBL_MEMBER D ON (A.ISSUE_REGISTER = D.MEMBER_NO)
+	           WHERE B.TASK_NO = #{ taskNo }
+	             AND A.ISSUE_REGISTER = #{ registerNo }
+		</selectKey>
+		INSERT ALL
+		  INTO TBL_ISSUE_NOTIFICATION
+		(
+		  ISSUE_HISTORY_NO
+		, ISSUE_PROGRESS_STATUS 
+		, ISSUE_NO 
+		, ISSUE_REGISTER
+		, ISSUE_MANAGER
+		, ISSUE_READER
+		, ISSUE_UPDATED_CONTENT
+		, PROJECT_NO
+		)
+		VALUES
+		(
+		  ISSUE_HISTORY_NO.NEXTVAL
+		, #{ progressStatus }
+		, #{ no }
+		, #{ registerNo }
+		, #{ managerNo }
+		, #{ registerNo }
+		, '[' || #{ loginMemberName } || ']' || '님이 ' || #{ taskCodeManageName } || ' [' || '업무' || '] ' || '에서 ' || '[' || '이슈' || '] ' || #{ name } || '를 ' || '[' || '추가' || '] ' || '했습니다'
+		, #{ projectNo }
+		)
+		  INTO TBL_ISSUE_NOTIFICATION
+		(
+		  ISSUE_HISTORY_NO
+		, ISSUE_PROGRESS_STATUS 
+		, ISSUE_NO 
+		, ISSUE_REGISTER
+		, ISSUE_MANAGER
+		, ISSUE_READER
+		, ISSUE_UPDATED_CONTENT
+		, PROJECT_NO
+		)
+		VALUES
+	    (
+		  GET_HISTORY_NO_SEQUENCE()
+		, #{ progressStatus }
+		, #{ no }
+		, #{ registerNo }
+		, #{ managerNo }
+		, #{ managerNo }
+		, '[' || #{ loginMemberName } || ']' || '님이 ' || #{ taskCodeManageName } || ' [' || '업무' || '] ' || '에서 ' || '[' || '이슈' || '] ' || #{ name } || '를 ' || '[' || '추가' || '] ' || '했습니다'
+		, #{ projectNo }
+		)
+		SELECT * FROM DUAL
+	</insert>
+	
+	<insert id="updateIssueHistory" parameterType="com.greedy.waterfall.issue.model.dto.IssueDTO">
+		<selectKey keyProperty="taskCodeManageName,loginMemberName" resultType="com.greedy.waterfall.issue.model.dto.IssueDTO" order="BEFORE">
+			SELECT 
+			DISTINCT 
+	                 C.TASK_CATEGORY_NAME AS taskCodeManageName
+	               , D.MEMBER_NAME AS loginMemberName
+	            FROM TBL_ISSUE A
+	            JOIN TBL_TASK B ON (A.TASK_NO = B.TASK_NO)
+	            JOIN TBL_TASK_CODE_MANAGE C ON (B.TASK_CATEGORY_CODE = C.TASK_CATEGORY_CODE)
+	            JOIN TBL_MEMBER D ON (A.ISSUE_REGISTER = D.MEMBER_NO)
+	           WHERE B.TASK_NO = #{ taskNo }
+	             AND A.ISSUE_REGISTER = #{ registerNo }
+		</selectKey>
+		INSERT ALL
+		  INTO TBL_ISSUE_NOTIFICATION
+		(
+		  ISSUE_HISTORY_NO
+		, ISSUE_PROGRESS_STATUS 
+		, ISSUE_NO 
+		, ISSUE_REGISTER
+		, ISSUE_MANAGER
+		, ISSUE_READER
+		, ISSUE_UPDATED_CONTENT 
+		, PROJECT_NO
+		)
+		VALUES
+	    (
+		  ISSUE_HISTORY_NO.NEXTVAL
+		, #{ progressStatus }
+		, #{ no }
+		, #{ registerNo }
+		, #{ managerNo }
+		, #{ registerNo }
+		, '[' || #{ loginMemberName } || ']' || '님이 ' || #{ taskCodeManageName } || ' [' || '업무' || '] ' || '에서 ' || '[' || '이슈' || '] ' || #{ name } || '를 ' || '[' || '수정' || '] ' || '했습니다'
+		, #{ projectNo }
+		)
+		  INTO TBL_ISSUE_NOTIFICATION
+		(
+		  ISSUE_HISTORY_NO
+		, ISSUE_PROGRESS_STATUS 
+		, ISSUE_NO 
+		, ISSUE_REGISTER
+		, ISSUE_MANAGER
+		, ISSUE_READER
+		, ISSUE_UPDATED_CONTENT
+		, PROJECT_NO
+		)
+		VALUES
+		(
+		  GET_HISTORY_NO_SEQUENCE()
+		, #{ progressStatus }
+		, #{ no }
+		, #{ registerNo }
+		, #{ managerNo }
+		, #{ managerNo }
+		, '[' || #{ loginMemberName } || ']' || '님이 ' || #{ taskCodeManageName } || ' [' || '업무' || '] ' || '에서 ' || '[' || '이슈' || '] ' || #{ name } || '를 ' || '[' || '수정' || '] ' || '했습니다'
+		, #{ projectNo }
+		)
+		SELECT * FROM DUAL
+	</insert>
+	
+	<insert id="deleteIssueHistory" parameterType="com.greedy.waterfall.issue.model.dto.IssueDTO">
+		<selectKey keyProperty="taskCodeManageName,loginMemberName" resultType="com.greedy.waterfall.issue.model.dto.IssueDTO" order="BEFORE">
+			SELECT 
+			DISTINCT 
+	                 C.TASK_CATEGORY_NAME AS taskCodeManageName
+	               , (SELECT MEMBER_NAME FROM TBL_MEMBER WHERE MEMBER_NO = #{ loginMemberNo }) AS loginMemberName
+	            FROM TBL_ISSUE A
+	            JOIN TBL_TASK B ON (A.TASK_NO = B.TASK_NO)
+	            JOIN TBL_TASK_CODE_MANAGE C ON (B.TASK_CATEGORY_CODE = C.TASK_CATEGORY_CODE)
+	           WHERE B.TASK_NO = #{ taskNo }
+			</selectKey>
+		INSERT ALL
+		  INTO TBL_ISSUE_NOTIFICATION
+		(
+		  ISSUE_HISTORY_NO
+		, ISSUE_PROGRESS_STATUS 
+		, ISSUE_NO 
+		, ISSUE_REGISTER
+		, ISSUE_MANAGER
+		, ISSUE_READER
+		, ISSUE_UPDATED_CONTENT
+		, PROJECT_NO
+		)
+		VALUES
+		(
+		  ISSUE_HISTORY_NO.NEXTVAL
+		, #{ progressStatus }
+		, #{ no }
+		, #{ registerNo }
+		, #{ managerNo }
+		, #{ registerNo }
+		, '[' || #{ loginMemberName } || ']' || '님이 ' || #{ taskCodeManageName } || ' [' || '업무' || '] ' || '에서 ' || '[' || '이슈' || '] ' || #{ name } || '를 ' || '[' || '삭제' || '] ' || '했습니다'
+		, #{ projectNo }
+		)
+		  INTO TBL_ISSUE_NOTIFICATION
+		(
+		  ISSUE_HISTORY_NO
+		, ISSUE_PROGRESS_STATUS 
+		, ISSUE_NO 
+		, ISSUE_REGISTER
+		, ISSUE_MANAGER
+		, ISSUE_READER
+		, ISSUE_UPDATED_CONTENT
+		, PROJECT_NO
+		)
+		VALUES
+		(
+		  GET_HISTORY_NO_SEQUENCE()
+		, #{ progressStatus }
+		, #{ no }
+		, #{ registerNo }
+		, #{ managerNo }
+		, #{ managerNo }
+		, '[' || #{ loginMemberName } || ']' || '님이 ' || #{ taskCodeManageName } || ' [' || '업무' || '] ' || '에서 ' || '[' || '이슈' || '] ' || #{ name } || '를 ' || '[' || '삭제' || '] ' || '했습니다'
+		, #{ projectNo }
+		)
+		SELECT * FROM DUAL
+	</insert>
+	
+ 	<insert id="writeRegistedIssueHistory" parameterType="com.greedy.waterfall.issue.model.dto.IssueDTO">
+		<selectKey keyProperty="taskCodeManageName,loginMemberName" resultType="com.greedy.waterfall.issue.model.dto.IssueDTO" order="BEFORE">
+			SELECT 
+			DISTINCT 
+	                 C.TASK_CATEGORY_NAME AS taskCodeManageName
+	               , D.MEMBER_NAME AS loginMemberName
+	            FROM TBL_ISSUE A
+	            JOIN TBL_TASK B ON (A.TASK_NO = B.TASK_NO)
+	            JOIN TBL_TASK_CODE_MANAGE C ON (B.TASK_CATEGORY_CODE = C.TASK_CATEGORY_CODE)
+	            JOIN TBL_MEMBER D ON (A.ISSUE_REGISTER = D.MEMBER_NO)
+	           WHERE B.TASK_NO = #{ taskNo }
+	             AND A.ISSUE_REGISTER = #{ registerNo }
+		</selectKey>
+		INSERT
+		  INTO TBL_ENTIRE_HISTORY A
+		(
+		  A.HISTORY_NO
+		, A.UPDATED_DATE
+		, A.CONTENT
+		, A.CATEGORY_TYPE_NO
+		, A.PROJECT_NO
+		, A.REGISTER_NO
+		)
+		VALUES
+		(
+		  HISTORY_NO.NEXTVAL
+	    , SYSDATE
+		, '[' || #{ loginMemberName } || ']' || '님이 ' || #{ taskCodeManageName } || ' [' || '업무' || '] ' || '에서 ' || '[' || '이슈' || '] ' || #{ name } || '를 ' || '[' || '추가' || '] ' || '했습니다'
+		, 3
+		, #{ projectNo }
+		, #{ registerNo } 
+		)
+	</insert>
+	
+	<insert id="writeUpdatedIssueHistory" parameterType="com.greedy.waterfall.issue.model.dto.IssueDTO">
+		<selectKey keyProperty="taskCodeManageName,loginMemberName" resultType="com.greedy.waterfall.issue.model.dto.IssueDTO" order="BEFORE">
+			SELECT 
+			DISTINCT 
+	                 C.TASK_CATEGORY_NAME AS taskCodeManageName
+	               , (SELECT MEMBER_NAME FROM TBL_MEMBER WHERE MEMBER_NO = #{ loginMemberNo }) AS loginMemberName
+	            FROM TBL_ISSUE A
+	            JOIN TBL_TASK B ON (A.TASK_NO = B.TASK_NO)
+	            JOIN TBL_TASK_CODE_MANAGE C ON (B.TASK_CATEGORY_CODE = C.TASK_CATEGORY_CODE)
+	           WHERE B.TASK_NO = #{ taskNo }
+		</selectKey>
+		INSERT
+		  INTO TBL_ENTIRE_HISTORY A
+		(
+		  A.HISTORY_NO
+		, A.UPDATED_DATE
+		, A.CONTENT
+		, A.CATEGORY_TYPE_NO
+		, A.PROJECT_NO
+		, A.REGISTER_NO
+		)
+		VALUES
+		(
+		  HISTORY_NO.NEXTVAL
+		, SYSDATE
+		, '[' || #{ loginMemberName } || ']' || '님이 ' || #{ taskCodeManageName } || ' [' || '업무' || '] ' || '에서 ' || '[' || '이슈' || '] ' || #{ name } || '를 ' || '[' || '수정' || '] ' || '했습니다'
+		, 3
+		, #{ projectNo }
+		, #{ loginMemberNo } 
+		)
+	</insert>
+	
+	<insert id="writeDeletedIssueHistory" parameterType="com.greedy.waterfall.issue.model.dto.IssueDTO">
+		<selectKey keyProperty="taskCodeManageName,loginMemberName" resultType="com.greedy.waterfall.issue.model.dto.IssueDTO" order="BEFORE">
+			SELECT 
+			DISTINCT 
+	                 C.TASK_CATEGORY_NAME AS taskCodeManageName
+	               , (SELECT MEMBER_NAME FROM TBL_MEMBER WHERE MEMBER_NO = #{ loginMemberNo }) AS loginMemberName
+	            FROM TBL_ISSUE A
+	            JOIN TBL_TASK B ON (A.TASK_NO = B.TASK_NO)
+	            JOIN TBL_TASK_CODE_MANAGE C ON (B.TASK_CATEGORY_CODE = C.TASK_CATEGORY_CODE)
+	           WHERE B.TASK_NO = #{ taskNo }
+		</selectKey>
+		INSERT
+		  INTO TBL_ENTIRE_HISTORY A
+		(
+		  A.HISTORY_NO
+		, A.UPDATED_DATE
+		, A.CONTENT
+		, A.CATEGORY_TYPE_NO
+		, A.PROJECT_NO
+		, A.REGISTER_NO
+		)
+		VALUES
+		(
+		  HISTORY_NO.NEXTVAL
+		, SYSDATE
+		, '[' || #{ loginMemberName } || ']' || '님이 ' || #{ taskCodeManageName } || ' [' || '업무' || '] ' || '에서 ' || '[' || '이슈' || '] ' || #{ name } || '를 ' || '[' || '삭제' || '] ' || '했습니다'
+		, 3
+		, #{ projectNo }
+		, #{ loginMemberNo } 
+		)
+	</insert>
+	
+	<!-- ======= 알림 기능 구현 ======= -->
+	
+	<!-- 알림 리스트 가져오기 -->
+	<select id="notifyIssueList" parameterType="_int" resultMap="notificationResultMap">
+		SELECT
+	           A.ISSUE_HISTORY_NO
+	         , A.ISSUE_PROGRESS_STATUS
+             , A.ISSUE_UPDATED_DATE
+             , A.ISSUE_NO
+             , A.ISSUE_REGISTER
+             , A.ISSUE_MANAGER
+             , A.ISSUE_UPDATED_CONTENT
+             , A.ISSUE_READ_CHECK
+             , A.PROJECT_NO
+             , A.ISSUE_READER
+          FROM TBL_ISSUE_NOTIFICATION A
+         WHERE A.ISSUE_READ_CHECK = 1
+         AND A.ISSUE_READER = #{ loginMemberNo }
+         ORDER BY 4
+	</select>
+	
+    <!-- 안읽은 메시지 갯수 가져오기  -->
+    <select id="notifyCount" parameterType="_int" resultType="_int">
+  		SELECT
+               COUNT(A.ISSUE_HISTORY_NO) AS COUNT
+          FROM TBL_ISSUE_NOTIFICATION A
+         WHERE A.ISSUE_READ_CHECK = 1
+            AND A.ISSUE_READER = #{ loginMemberNo }
+    </select>
+    
+    <!-- x눌렀을 때 메시지 읽은것으로 처리되어 사용자에게는 더 이상 보여지지 않음 -->
+    <update id="removeCheck" parameterType="hashmap">
+    	UPDATE
+               TBL_ISSUE_NOTIFICATION A
+           SET A.ISSUE_READ_CHECK = 0
+         WHERE A.ISSUE_READ_CHECK = 1
+           AND A.ISSUE_HISTORY_NO = #{ issueHistoryNo }
+           AND A.ISSUE_READER = #{ loginMemberNo }
+    </update>
+    
+  </mapper>

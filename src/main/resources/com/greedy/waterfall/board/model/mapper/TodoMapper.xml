@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.greedy.waterfall.board.model.mapper.TodoMapper">
+	<resultMap type="com.greedy.waterfall.board.model.dto.TodoDTO" id="todoResultMap">
+		<id property="no" column="BOARD_NO"/>
+		<result property="postingDate" column="BOARD_POSTING_DATE"/>
+		<result property="title" column="BOARD_TITLE"/>
+		<result property="content" column="BOARD_CONTENT"/>
+		<result property="status" column="BOARD_STATUS"/>
+		<result property="projectNo" column="PROJECT_NO"/>
+		<result property="categoryNo" column="BOARD_CATEGORY_NO"/>
+		<result property="updatedDate" column="BOARD_UPDATED_DATE"/>
+		<result property="memberNo" column="MEMBER_NO"/>
+		<result property="count" column="BOARD_COUNT"/>
+		
+		<association property="writer" resultMap="memberResultMap"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.member.model.dto.MemberDTO" id="memberResultMap">
+		<id property="no" column="MEMBER_NO"/>
+		<result property="id" column="MEMBER_ID"/>
+		<result property="pwd" column="MEMBER_PWD"/>
+		<result property="phone" column="PHONE"/>
+		<result property="email" column="EMAIL"/>
+		<result property="status" column="MEMBER_STATUS"/>
+		<result property="name" column="MEMBER_NAME"/>
+		<result property="createdDate" column="MEMBER_CREATED_DATE"/>
+		<result property="retiredDate" column="MEMBER_RETIRED_DATE"/>
+		<result property="initStatus" column="MEMBER_PWD_INIT_STATUS"/>
+		<result property="role" column="MEMBER_AUTHORIZATION_NO"/>
+	</resultMap>
+	
+	<!-- 게시글 등록 -->
+	<insert id="insertTodo" parameterType="com.greedy.waterfall.board.model.dto.TodoDTO">
+		INSERT
+		  INTO TBL_BOARD A
+		(
+		  A.BOARD_NO
+        , A.BOARD_POSTING_DATE
+        , A.BOARD_TITLE
+        , A.BOARD_CONTENT
+        , A.BOARD_STATUS
+        , A.PROJECT_NO
+        , A.BOARD_CATEGORY_NO
+        , A.MEMBER_NO
+        , A.BOARD_COUNT
+		)
+		VALUES
+		(
+		  BOARD_NO.NEXTVAL
+		, SYSDATE
+		, #{ title }
+		, #{ content }
+		, 'Y'
+		, #{ projectNo }
+		, 5
+		, #{ memberNo }
+		, 0 
+		)
+	</insert>
+	
+	<!-- 게시글 전체 목록 조회 -->
+	<select id="findTodo" resultMap="todoResultMap">
+		SELECT /* com.greedy.waterfall.board.model.mapper.TodoMapper#findTodo() */
+        	   A.RNUM
+		     , A.BOARD_NO
+		     , A.BOARD_TITLE
+		     , A.BOARD_CONTENT
+		     , A.BOARD_COUNT
+		     , A.BOARD_POSTING_DATE
+		     , A.BOARD_STATUS
+		     , A.PROJECT_NO
+		     , A.BOARD_CATEGORY_NO
+		     , A.MEMBER_NAME
+		  FROM (SELECT ROWNUM RNUM
+		             , B.BOARD_NO
+		             , B.BOARD_TITLE
+		             , B.BOARD_CONTENT
+		             , B.BOARD_COUNT
+		             , B.BOARD_POSTING_DATE
+		             , B.BOARD_STATUS
+		             , B.PROJECT_NO
+		             , B.BOARD_CATEGORY_NO
+		             , B.MEMBER_NAME
+		          FROM (SELECT C.BOARD_NO
+		                     , C.BOARD_TITLE
+		                     , C.BOARD_CONTENT
+		                     , C.BOARD_COUNT
+		                     , C.BOARD_POSTING_DATE
+		                     , C.BOARD_STATUS
+		                     , C.PROJECT_NO
+		                     , D.BOARD_CATEGORY_NO
+		                     , E.MEMBER_NAME
+		                  FROM TBL_BOARD C
+		                  JOIN TBL_BOARD_CATEGORY D ON (C.BOARD_CATEGORY_NO = D.BOARD_CATEGORY_NO)
+		                  JOIN TBL_MEMBER E ON (C.MEMBER_NO = E.MEMBER_NO)
+		                <where>
+			                 <if test="searchCondition == 'title'">
+			                 	C.BOARD_TITLE LIKE '%' || #{ searchValue } || '%'
+			                 </if>
+			                 <if test="searchCondition == 'content'">
+			                 	C.BOARD_CONTENT LIKE '%' || #{ searchValue } || '%'
+			                 </if>
+			                 <!-- <if test="searchCondition == 'writer'">
+			                 	E.MEMBER_NAME LIKE '%' || #{ searchValue } || '%'
+			                 </if> -->
+			                 AND C.BOARD_STATUS = 'Y'
+			                 AND C.PROJECT_NO = #{ projectNo }
+			                 AND D.BOARD_CATEGORY_NO = 5
+		                </where>
+		                 ORDER BY C.BOARD_NO DESC
+		               ) B
+		         <![CDATA[  
+		         WHERE ROWNUM <= #{ endRow }
+		         ]]>
+		       ) A
+		 WHERE A.RNUM >= #{ startRow }
+		 ORDER BY 1 ASC
+	</select>
+	
+	<!-- 게시글 전체 갯수 조회 -->
+	<select id="selectTotalCount" resultType="_int" parameterType="hashmap">
+		SELECT /* com.greedy.waterfall.board.model.mapper.TodoMapper#selectTotalCount() */
+               COUNT(*)
+          FROM TBL_BOARD A
+          <!-- <if test="searchCondition == 'writer'">
+	      	JOIN TBL_MEMBER B ON(A.MEMBER_NO = B.MEMBER_NO)
+    	  </if> -->
+    	<where>
+			<if test="searchCondition == 'title'">
+	           A.BOARD_TITLE LIKE '%' || #{ searchValue } || '%' 	
+			</if>
+			<if test="searchCondition == 'content'">
+	           A.BOARD_CONTENT LIKE '%' || #{ searchValue } || '%' 	
+			</if>
+			<!-- <if test="searchCondition == 'writer'">
+	           B.MEMBER_NAME LIKE '%' || #{ searchValue } || '%'	
+			</if> -->
+	       AND A.BOARD_STATUS = 'Y'
+	       <!-- AND A.PROJECT_NO = #{ projectNo } -->
+	       <!-- To Do 게시판 게시글만 카운트 -->
+	       AND A.BOARD_CATEGORY_NO = 5
+    	</where>
+	</select>
+	
+	<!-- 조회수 -->
+	<update id="incrementTodoCount" parameterType="_int">
+		UPDATE 
+               TBL_BOARD A
+           SET A.BOARD_COUNT = (SELECT B.BOARD_COUNT
+                                   FROM TBL_BOARD B
+                                  WHERE B.BOARD_NO = #{ no }
+                                ) + 1
+         WHERE A.BOARD_NO = #{ no }
+	</update>
+	
+	<!-- 게시글 상세 조회 -->
+	<select id="selectTodoDetail" resultMap="todoResultMap">
+		SELECT
+		       A.BOARD_NO
+             , A.BOARD_TITLE
+             , A.BOARD_CONTENT
+             , A.BOARD_COUNT
+             , A.BOARD_POSTING_DATE
+             , B.MEMBER_NAME
+             , A.BOARD_STATUS
+          FROM TBL_BOARD A
+          JOIN TBL_MEMBER B ON (A.MEMBER_NO = B.MEMBER_NO)
+         WHERE A.BOARD_NO = #{ no }
+	</select>
+	
+	<!-- 게시글 수정 -->
+	<update id="updateTodo" parameterType="com.greedy.waterfall.board.model.dto.TodoDTO">
+		UPDATE
+		       TBL_BOARD A
+		   SET A.BOARD_TITLE = #{ title }
+		     , A.BOARD_CONTENT = #{ content }
+		 WHERE A.BOARD_NO = #{ no }    
+	</update>
+	
+	<!-- 게시글 삭제 -->
+	<delete id="deleteTodo" parameterType="_int">
+		DELETE
+		  FROM TBL_BOARD A
+		 WHERE A.BOARD_NO = #{ no }
+		   AND A.BOARD_CATEGORY_NO = 5
+	</delete>
+</mapper>

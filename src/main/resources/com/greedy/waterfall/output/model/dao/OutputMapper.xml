@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.greedy.waterfall.output.model.dao.OutputMapper">
+	<resultMap type="com.greedy.waterfall.output.model.dto.OutputDTO" id="outputResultMap">
+	<id property="outputNo" column="OUTPUT_NO"/>
+	<result property="outputVer" column="OUTPUT_VER"/>
+	<result property="content" column="OUTPUT_COMMENT"/>
+	<result property="registedDate" column="OUTPUT_REGISTED_DATE"/>
+	<result property="status" column="OUTPUT_STATUS"/>
+	<result property="memberNo" column="MEMBER_NO"/>
+	<result property="projectNo" column="PROJECT_NO"/>
+	<result property="memberName" column="MEMBER_NAME"/>
+	
+	<association property="outputFile" resultMap="fileResultMap"></association>
+	<association property="project" resultMap="projectResultMap"></association>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.task.model.dto.TaskDTO" id="taskResultMap">
+		<id property="taskNo" column="TASK_NO"/>
+		<result property="parentTaskNo" column="TASK_REF_NO"/>
+		<result property="startDate" column="TASK_START_DATE"/>
+		<result property="deadline" column="TASK_DEADLINE"/>
+		<result property="progression" column="TASK_PROGRESSION"/>
+		<result property="typeNo" column="TASK_TYPE_NO"/>
+		<result property="taskStatus" column="TASK_STATUS"/>
+		<result property="progressStatus" column="TASK_PROGRESS_STATUS"/>
+		<result property="taskStatus" column="TASK_STATUS"/>
+		<result property="taskCode" column="TASK_CATEGORY_CODE"/>
+		<result property="projectNo" column="PROJECT_NO"/>
+		<result property="managerNo" column="MEMBER_NO"/>
+		<result property="projectName" column="PROJECT_NAME"/>
+		
+		<association property="taskCategory" resultMap="taskCategoryResultMap"></association>
+		<collection property="childList" resultMap="childTaskResultMap"></collection>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.task.model.dto.ChildTaskDTO" id="childTaskResultMap">
+		<id property="taskNo" column="TASK_NO"/>
+		<result property="parentTaskNo" column="TASK_REF_NO"/>
+		<result property="startDate" column="TASK_START_DATE"/>
+		<result property="deadline" column="TASK_DEADLINE"/>
+		<result property="progression" column="TASK_PROGRESSION"/>
+		<result property="taskStatus" column="TASK_STATUS"/>
+		<result property="progressStatus" column="TASK_PROGRESS_STATUS"/>
+		<result property="taskCode" column="TASK_CATEGORY_CODE"/>
+		<result property="projectNo" column="PROJECT_NO"/>
+		<result property="managerNo" column="MEMBER_NO"/>
+		<result property="typeNo" column="TASK_TYPE_NO"/>
+		
+		<association property="taskCategory" resultMap="taskCategoryResultMap"></association>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.member.model.dto.MemberDTO" id="memberResultMap">
+		<id property="no" column="MEMBER_NO"/>
+		<result property="name" column="MEMBER_NAME"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.output.model.dto.OutputProjectDTO" id="projectResultMap">
+		<id property="no" column="PROJECT_NO"/>
+		<result property="name" column="PROJECT_NAME"/>
+		<result property="startDate" column="PROJECT_START_DATE"/>
+		<result property="deadLine" column="PROJECT_DEADLINE"/>
+		<result property="progression" column="PROJECT_PROGRESSION"/>
+		<result property="statusCode" column="PROJECT_PROGRESS_STATUS_CODE"/>
+		
+		<association property="status" resultMap="projectStatusResultMap"/>
+		<association property="manager" resultMap="memberResultMap"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.task.model.dto.TaskCategoryDTO" id="taskCategoryResultMap">
+		<id property="categoryCode" column="TASK_CATEGORY_CODE"/>
+		<result property="categoryName" column="TASK_CATEGORY_NAME"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.output.model.dto.OutputAttachmentDTO" id="fileResultMap">
+		<id property="fileNo" column="OUTPUT_FILE_NO"/>
+		<result property="filePath" column="OUTPUT_FILE_PATH"/>
+		<result property="originName" column="OUTPUT_ORIGIN_NAME"/>
+		<result property="randomName" column="OUTPUT_RANDOM_NAME"/>
+		<result property="status" column="OUTPUT_STATUS"/>
+		<result property="registedDate" column="OUTPUT_REGISTED_DATE"/>
+		<result property="outputNo" column="REF_OUTPUT_NO"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.output.model.dto.OutputProjectStatusDTO" id="projectStatusResultMap">
+		<id property="projectStatusCode" column="PROJECT_PROGRESS_STATUS_CODE"/>
+		<result property="projectStatusName" column="PROJECT_PROGRESS_STATUS_NAME"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.task.model.dto.TaskRestoreOutputDTO" id="restoreOutputResultMap">
+		<result property="taskNo" column="TASK_NO"/>
+		<result property="taskName" column="TASK_CATEGORY_NAME"/>
+		<result property="projectNo" column="PROJECT_NO"/>
+		<result property="memberNo" column="MEMBER_NO"/>
+		<result property="originName" column="OUTPUT_ORIGIN_NAME"/>
+		<result property="fileNo" column="OUTPUT_FILE_NO"/>
+		<result property="outputNo" column="REF_OUTPUT_NO"/>
+		
+		<collection property="restoreOutputList" resultMap="outputResultMap"></collection>
+	</resultMap>
+	<select id="selectParentTaskList" resultMap="taskResultMap">
+		SELECT
+		       A.TASK_CATEGORY_CODE
+		     , B.TASK_CATEGORY_NAME
+		     , A.TASK_NO
+		  FROM TBL_TASK A
+		  JOIN TBL_TASK_CODE_MANAGE B ON(A.TASK_CATEGORY_CODE = B.TASK_CATEGORY_CODE ) 
+		 WHERE A.PROJECT_NO = #{ projectNo }
+		   AND A.TASK_REF_NO IS NULL
+		   AND A.TASK_STATUS = 'Y'
+	</select>
+	
+	<select id="selectChildTaskList" resultMap="childTaskResultMap">
+		SELECT
+		       A.TASK_CATEGORY_CODE
+		     , B.TASK_CATEGORY_NAME
+		     , A.TASK_NO
+		  FROM TBL_TASK A
+		  JOIN TBL_TASK_CODE_MANAGE B ON(A.TASK_CATEGORY_CODE = B.TASK_CATEGORY_CODE ) 
+		 WHERE A.TASK_STATUS = 'Y'
+		   AND A.TASK_REF_NO = #{taskNo}
+		 	
+	</select>
+	
+	<select id="selectChildTask" resultMap="childTaskResultMap">
+		SELECT
+		       A.TASK_REF_NO
+		     , A.TASK_START_DATE
+		     , A.TASK_DEADLINE
+		     , A.TASK_PROGRESSION
+		     , A.TASK_PROGRESS_STATUS
+		     , A.TASK_TYPE_NO
+		     , A.TASK_STATUS
+		     , A.PROJECT_NO
+		     , A.MEMBER_NO
+		     , A.TASK_CATEGORY_CODE
+		     , B.TASK_CATEGORY_NAME
+		  FROM TBL_TASK A
+		  JOIN TBL_TASK_CODE_MANAGE B ON(A.TASK_CATEGORY_CODE = B.TASK_CATEGORY_CODE )
+		 WHERE A.TASK_STATUS = 'Y'
+		   AND A.TASK_NO = #{ taskNo }
+	</select>
+	
+	<select id="selectOutputDetail" resultMap="outputResultMap">
+		SELECT
+		       A.OUTPUT_NO
+		     , A.OUTPUT_COMMENT
+		     , A.OUTPUT_REGISTED_DATE
+		     , A.OUTPUT_STATUS
+		     , A.MEMBER_NO
+		     , B.MEMBER_NAME
+		     , A.PROJECT_NO
+		     , A.OUTPUT_VER
+		     , C.OUTPUT_ORIGIN_NAME
+		     , D.PROJECT_NAME
+		  FROM TBL_OUTPUT A
+		  JOIN TBL_MEMBER B ON(A.MEMBER_NO = B.MEMBER_NO)
+		  LEFT JOIN TBL_OUTPUT_FILE C ON(A.OUTPUT_NO = C.REF_OUTPUT_NO)
+		  JOIN TBL_PROJECT D ON(A.PROJECT_NO = D.PROJECT_NO)
+		 WHERE A.OUTPUT_STATUS = 'Y'
+		   AND A.TASK_NO = #{ taskNo }
+	</select>
+	
+	<select id="selectParentTask" resultMap="taskResultMap">
+		SELECT
+		        A.TASK_START_DATE
+		      , A.TASK_DEADLINE
+		      , A.TASK_PROGRESSION
+		      , A.TASK_STATUS
+		      , A.TASK_PROGRESS_STATUS
+		      , A.TASK_CATEGORY_CODE
+		      , A.PROJECT_NO
+		      , C.PROJECT_NAME
+		      , A.MEMBER_NO
+		      , A.TASK_TYPE_NO
+		      , B.TASK_CATEGORY_NAME
+		  FROM TBL_TASK A
+		  JOIN TBL_TASK_CODE_MANAGE B ON(A.TASK_CATEGORY_CODE = B.TASK_CATEGORY_CODE )
+		  JOIN TBL_PROJECT C ON (A.PROJECT_NO = C.PROJECT_NO)
+		 WHERE A.TASK_REF_NO IS NULL
+		   AND A.TASK_STATUS = 'Y' 
+		   AND A.TASK_NO = #{ parentTaskNo }
+	</select>
+	
+	<update id="deleteOutput">
+		UPDATE
+		       TBL_OUTPUT A
+		   SET A.OUTPUT_STATUS = 'N'
+		 WHERE A.OUTPUT_NO = #{ outputNo }
+	</update>
+	
+	<select id="selectAllProjectList" resultMap="projectResultMap">
+		SELECT 
+			   A.PROJECT_NO
+			 , A.PROJECT_NAME
+			 , A.PROJECT_PROGRESSION
+			 , B.PROJECT_PROGRESS_STATUS_NAME
+			 , D.MEMBER_NAME
+          FROM TBL_PROJECT A
+          JOIN TBL_PROJECT_STATUS B ON(A.PROJECT_PROGRESS_STATUS_CODE = B.PROJECT_PROGRESS_STATUS_CODE)
+          JOIN TBL_ROLE_ASSIGNMENT_HISTORY C ON(A.PROJECT_NO = C.PROJECT_NO)
+          LEFT JOIN TBL_MEMBER D ON(C.MEMBER_NO = D.MEMBER_NO)
+ 	     WHERE A.PROJECT_STATUS = 'Y'
+ 	       
+ 	       AND C.ROLE_HISTORY_NO IN (SELECT MAX(ROLE_HISTORY_NO)
+ 	                                  FROM TBL_ROLE_ASSIGNMENT_HISTORY E
+ 	                                 WHERE E.ROLE_NO = 8
+ 	                                 GROUP BY PROJECT_NO
+ 	                                          )
+	</select>
+	
+	<select id="selectAlloutputCount" resultType="_int">
+		SELECT
+		       COUNT(*)
+		  FROM TBL_OUTPUT A
+		 WHERE A.PROJECT_NO = #{ projectNo }
+		   AND A.OUTPUT_STATUS = 'Y'
+		       
+	</select>
+	
+	<select id="selectAllDeletedOutputCount" resultType="_int">
+		SELECT
+		       COUNT(*)
+		  FROM TBL_OUTPUT A
+		 WHERE A.PROJECT_NO = #{ projectNo }
+		   AND A.OUTPUT_STATUS = 'N'
+	</select>
+	
+	<select id="selectAdminOutputList" resultMap="outputResultMap">
+		SELECT
+		       A.OUTPUT_NO
+		     , A.OUTPUT_COMMENT
+		     , A.OUTPUT_REGISTED_DATE
+		     , A.OUTPUT_STATUS
+		     , A.MEMBER_NO
+		     , B.MEMBER_NAME
+		     , A.PROJECT_NO
+		     , A.OUTPUT_VER
+		  FROM TBL_OUTPUT A
+		  LEFT JOIN TBL_MEMBER B ON (A.MEMBER_NO = B.MEMBER_NO)
+		 WHERE A.PROJECT_NO = #{ projectNo }  
+		   AND A.OUTPUT_STATUS = 'Y'
+	</select>
+	
+	<select id="selectOutputVer" resultType="_int">
+		SELECT
+		       COUNT(*)
+		  FROM TBL_OUTPUT A
+		 WHERE A.TASK_NO = #{ taskNo }
+		   AND A.OUTPUT_STATUS = 'Y'
+	</select>
+	
+	<select id="selectOutputCount" resultType="_int">
+		SELECT
+		       COUNT(*)
+		  FROM TBL_OUTPUT A
+		 WHERE A.TASK_NO = #{ taskNo }
+		   AND A.OUTPUT_STATUS = 'Y'
+	</select>
+	
+	<select id="selectOriginName" resultType="String">
+		SELECT
+		       A.OUTPUT_ORIGIN_NAME
+		  FROM TBL_OUTPUT_FILE A
+		 WHERE A.REF_OUTPUT_NO = #{ outputNo }
+	</select>
+	
+	<select id="findDeleteOutputList" resultMap="restoreOutputResultMap">
+		SELECT
+		       B.TASK_CATEGORY_NAME
+		     , D.OUTPUT_ORIGIN_NAME
+		     , C.OUTPUT_COMMENT
+		     , D.OUTPUT_FILE_NO
+		     , E.MEMBER_NAME
+		     , C.TASK_NO
+		  FROM TBL_TASK A
+		  JOIN TBL_TASK_CODE_MANAGE B ON(A.TASK_CATEGORY_CODE = B.TASK_CATEGORY_CODE )
+		  JOIN TBL_OUTPUT C ON(A.TASK_NO = C.TASK_NO)
+		  JOIN TBL_OUTPUT_FILE D ON(C.OUTPUT_NO = D.REF_OUTPUT_NO)
+		  JOIN TBL_MEMBER E ON(C.MEMBER_NO = E.MEMBER_NO)
+		 WHERE C.OUTPUT_STATUS = 'N'
+		   AND D.OUTPUT_STATUS = 'N'
+		   AND A.PROJECT_NO = #{ projectNo }
+		   AND A.TASK_STATUS = 'Y'
+		   AND B.TASK_CATEGORY_NAME IN(SELECT
+       										B.TASK_CATEGORY_NAME
+  									   FROM TBL_TASK A
+  									   JOIN TBL_TASK_CODE_MANAGE B ON(A.TASK_CATEGORY_CODE = B.TASK_CATEGORY_CODE )
+ 									  WHERE A.PROJECT_NO = #{ projectNo }
+                                        AND A.TASK_STATUS = 'Y'
+                                    )
+	</select>
+	
+	<select id="selectDeletedOutput" resultMap="outputResultMap">
+		SELECT
+		       A.OUTPUT_NO
+		  FROM TBL_OUTPUT A
+		 WHERE A.OUTPUT_STATUS = 'N'
+		   AND A.TASK_NO = #{ taskNo }
+	</select>
+	
+	<select id="selectTaskNoOutputNo" resultMap="restoreOutputResultMap">
+		SELECT
+		       A.REF_OUTPUT_NO
+		     , C.TASK_NO
+		  FROM TBL_OUTPUT_FILE A
+		  JOIN TBL_OUTPUT B ON(A.REF_OUTPUT_NO = B.OUTPUT_NO)
+		  JOIN TBL_TASK C ON(B.TASK_NO = C.TASK_NO)
+		 WHERE A.OUTPUT_FILE_NO = #{ fileNo }
+	</select>
+	
+	<select id="selectProjectNo" resultType="int">
+		SELECT 
+		       C.PROJECT_NO
+		 FROM TBL_OUTPUT_FILE A
+		 JOIN TBL_OUTPUT B ON(A.REF_OUTPUT_NO = B.OUTPUT_NO)
+		 JOIN TBL_TASK C ON(B.TASK_NO = C.TASK_NO)
+		WHERE A.OUTPUT_FILE_NO = #{ fileNo }
+		
+	</select>
+	
+	<select id="selectProjectNoByOutputNo" resultType="int">
+		SELECT 
+		       B.PROJECT_NO
+		 FROM TBL_OUTPUT A
+		 JOIN TBL_TASK B ON(A.TASK_NO = B.TASK_NO)
+		WHERE A.OUTPUT_NO= #{ outputNo }
+	</select>
+	
+	<insert id="insertOutput">
+		INSERT
+		  INTO TBL_OUTPUT A
+	    (
+          A.OUTPUT_NO
+	    , A.OUTPUT_COMMENT
+        , A.OUTPUT_REGISTED_DATE
+    	, A.OUTPUT_STATUS
+        , A.MEMBER_NO
+        , A.PROJECT_NO
+        , A.TASK_NO
+	    , A.OUTPUT_VER
+	    )
+	    VALUES
+        (
+          OUTPUT_NO.NEXTVAL
+        , #{ content }
+	    , SYSDATE
+        , 'Y'
+        , #{ memberNo }
+        , #{ projectNo }
+		, #{ taskNo }
+		, 1
+		)
+	</insert>
+	
+	<insert id="insertOutputAttachment">
+		INSERT
+		  INTO TBL_OUTPUT_FILE A
+		(
+		  A.OUTPUT_FILE_NO
+		, A.OUTPUT_FILE_PATH
+		, A.OUTPUT_ORIGIN_NAME
+		, A.OUTPUT_RANDOM_NAME
+		, A.OUTPUT_STATUS
+		, A.OUTPUT_REGISTED_DATE
+		, A.REF_OUTPUT_NO
+		)
+		VALUES
+		(
+		  OUTPUT_FILE_NO.NEXTVAL
+		, #{ filePath }
+		, #{ originName }
+	    , #{ randomName }
+		, 'Y'
+		, SYSDATE
+		, OUTPUT_NO.CURRVAL
+		)
+	</insert>
+	
+	<insert id="insertOutputHistory">
+		INSERT
+		  INTO TBL_OUTPUT_HISTORY A
+		(
+		  A.OUTPUT_HISTORY_NO
+		, A.OUTPUT_HISTORY_DATE
+		, A.OUTPUT_HISTORY_CONDITION
+		, A.OUTPUT_NO
+		, A.MEMBER_NO
+		)
+		  VALUES
+		(
+		  OUTPUT_HISTORY_NO.NEXTVAL
+		, SYSDATE
+		, '등록'
+		, OUTPUT_NO.CURRVAL
+		, #{ memberNo }
+		)
+	</insert>
+	<insert id="insertUpdateHistory">
+		INSERT
+		  INTO TBL_OUTPUT_HISTORY A
+		(
+		  A.OUTPUT_HISTORY_NO
+		, A.OUTPUT_HISTORY_DATE
+		, A.OUTPUT_HISTORY_CONDITION
+		, A.OUTPUT_NO
+		, A.MEMBER_NO
+		, A.OUTPUT_HISTORY_BEFORE_MODIFY
+		, A.OUTPUT_HISTORY_AFTER_MODIFY
+		)
+		VALUES
+	    (
+		  OUTPUT_HISTORY_NO.NEXTVAL
+		, SYSDATE
+		, '수정'
+		, #{ outputNo }
+		, #{ memberNo }
+		, #{ beforeOriginName }
+		, #{ afterOriginName }
+		)   
+	</insert>
+	
+	<insert id="insertDeleteHistory">
+		INSERT
+		  INTO TBL_OUTPUT_HISTORY A
+		(
+		  A.OUTPUT_HISTORY_NO
+		, A.OUTPUT_HISTORY_DATE
+		, A.OUTPUT_HISTORY_CONDITION
+		, A.OUTPUT_NO
+		, A.MEMBER_NO
+		)
+		VALUES
+		(
+		  OUTPUT_HISTORY_NO.NEXTVAL
+		, SYSDATE
+		, '삭제'
+		, #{ outputNo }
+		, #{ memberNo }
+		     )
+	</insert>
+	
+	<insert id="insertEntireHistory">
+		INSERT
+		  INTO TBL_ENTIRE_HISTORY A
+		(
+		  A.HISTORY_NO
+		, A.UPDATED_DATE
+		, A.CONTENT
+		, A.CATEGORY_TYPE_NO
+		, A.PROJECT_NO
+		, A.REGISTER_NO
+		)
+		VALUES
+		(
+		  HISTORY_NO.NEXTVAL
+		, SYSDATE
+		, '[' || #{ memberName } || ']' || '님이 ' || #{ taskName  } || ' [' || '업무' || '] ' || '에서 ' || '[' || '산출물' || '] 를 ' || '[' || '수정' || '] ' || '했습니다'
+		, 4
+		, #{ projectNo }
+		, #{ memberNo } 
+		     )
+	</insert>
+	
+	<select id="selectMemberName" resultType="String">
+		 SELECT
+        		A.MEMBER_NAME
+  		   FROM TBL_MEMBER A
+ 		  WHERE A.MEMBER_NO = #{ memberNo }
+	</select>
+	
+	<select id="selectOutputFile" resultMap="fileResultMap">
+		SELECT
+		       A.OUTPUT_FILE_NO
+		     , A.OUTPUT_FILE_PATH
+		     , A.OUTPUT_ORIGIN_NAME
+		     , A.OUTPUT_RANDOM_NAME
+		     , A.OUTPUT_STATUS
+		     , A.OUTPUT_REGISTED_DATE
+		     , A.REF_OUTPUT_NO
+		  FROM TBL_OUTPUT_FILE A
+		 WHERE A.REF_OUTPUT_NO = #{ outputNo }
+		   AND A.OUTPUT_STATUS = 'Y'
+	</select>
+	
+	<update id="deleteOutputFile">
+		UPDATE
+		       TBL_OUTPUT_FILE A
+		   SET A.OUTPUT_STATUS = 'N'
+		 WHERE A.REF_OUTPUT_NO = #{ outputNo }
+	</update>
+	
+	
+	<update id="updateOutput">
+		UPDATE
+		        TBL_OUTPUT A
+		   SET  A.OUTPUT_COMMENT = #{ content }
+		     ,  A.OUTPUT_REGISTED_DATE = SYSDATE
+		     ,  A.MEMBER_NO = #{ memberNo }
+		     ,  A.OUTPUT_VER = (SELECT B.OUTPUT_VER
+		                        FROM TBL_OUTPUT B
+		                       WHERE B.OUTPUT_NO = #{ outputNo }
+		                       ) + 1
+	     WHERE A.OUTPUT_NO = #{ outputNo } 
+	</update>
+	
+	<update id="updateFile">
+		UPDATE
+		       TBL_OUTPUT_FILE A
+		   SET A.OUTPUT_FILE_PATH = #{ filePath }
+		     , A.OUTPUT_ORIGIN_NAME = #{ originName }
+		     , A.OUTPUT_RANDOM_NAME = #{ randomName }
+		     , A.OUTPUT_REGISTED_DATE = SYSDATE
+		 WHERE A.REF_OUTPUT_NO = #{ outputNo }
+		     
+	</update>
+	
+	<update id="updateRestoreFile">
+		UPDATE
+		       TBL_OUTPUT_FILE A
+		   SET A.OUTPUT_STATUS = 'Y'
+		 WHERE A.OUTPUT_FILE_NO = #{ fileNo }
+	</update>
+	
+	<update id="updateRestoreOutput">
+		UPDATE
+		       TBL_OUTPUT A
+		   SET A.OUTPUT_STATUS = 'Y'
+		 WHERE A.OUTPUT_NO = #{ outputNo }
+	</update>
+	
+</mapper>

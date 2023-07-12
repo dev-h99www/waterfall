@@ -1,0 +1,14 @@
+
+ctrl + e 열려있는 창 검색해서 닫기
+f12 코드
+alt+s = tomcat
+alt + e = navigator
+alt + c = console
+ctrl + n + n
+ctrl + n + c class
+ctrl + p = package
+ctrl + f = folder
+ctrl + j = jsp
+alt + q = convention
+
+왕십리 돈까스전원

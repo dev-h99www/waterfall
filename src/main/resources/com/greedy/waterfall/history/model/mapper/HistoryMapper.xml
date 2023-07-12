@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.greedy.waterfall.history.model.mapper.HistoryMapper">
+  	<resultMap type="com.greedy.waterfall.history.model.dto.HistoryDTO" id="historyResultMap">
+  		<id property="historyNo" column="HISTORY_NO"/>
+  		<result property="updatedDate" column="UPDATED_DATE" />
+  		<result property="content" column="CONTENT" />
+  		<result property="categoryTypeNo" column="CATEGORY_TYPE_NO" />
+  		<result property="categoryTypeName" column="CATEGORY_TYPE_NAME" />
+  		<result property="projectNo" column="PROJECT_NO" />
+  		<result property="registerNo" column="REGISTER_NO" />
+  	</resultMap>
+  
+  <select id="selectEntireHistoryList" resultMap="historyResultMap">
+	SELECT
+	       A.HISTORY_NO
+	     , A.UPDATED_DATE
+         , A.CONTENT
+         , A.CATEGORY_TYPE_NO
+         , B.CATEGORY_TYPE_NAME
+         , A.PROJECT_NO
+         , A.REGISTER_NO
+      FROM TBL_ENTIRE_HISTORY A
+      JOIN TBL_ENTIRE_HISTORY_CATEGORY B ON (A.CATEGORY_TYPE_NO = B.CATEGORY_TYPE_NO)
+     ORDER BY 1 DESC
+  </select>
+  
+  <select id="selectAdminProjectHistoryList" resultMap="historyResultMap">
+	SELECT
+	       A.HISTORY_NO
+	     , A.UPDATED_DATE
+         , A.CONTENT
+         , A.CATEGORY_TYPE_NO
+         , B.CATEGORY_TYPE_NAME
+         , A.PROJECT_NO
+         , A.REGISTER_NO
+      FROM TBL_ENTIRE_HISTORY A
+      JOIN TBL_ENTIRE_HISTORY_CATEGORY B ON (A.CATEGORY_TYPE_NO = B.CATEGORY_TYPE_NO)
+     WHERE A.CATEGORY_TYPE_NO = 1
+     ORDER BY 1 DESC
+  </select>
+  
+  <!-- 개별 프로젝트 내 모든 히스토리 조회  -->
+  <select id="selectProjectHistoryList" resultMap="historyResultMap">
+	SELECT
+	       A.HISTORY_NO
+	     , A.UPDATED_DATE
+         , A.CONTENT
+         , A.CATEGORY_TYPE_NO
+         , B.CATEGORY_TYPE_NAME
+         , A.PROJECT_NO
+         , A.REGISTER_NO
+      FROM TBL_ENTIRE_HISTORY A
+      JOIN TBL_ENTIRE_HISTORY_CATEGORY B ON (A.CATEGORY_TYPE_NO = B.CATEGORY_TYPE_NO)
+     WHERE A.PROJECT_NO = #{ projectNo }
+     ORDER BY 1 DESC
+  </select>
+  
+  <select id="selectTaskHistoryList" resultMap="historyResultMap">
+	SELECT
+		   A.HISTORY_NO
+	     , A.UPDATED_DATE
+         , A.CONTENT
+         , A.CATEGORY_TYPE_NO
+         , B.CATEGORY_TYPE_NAME
+         , A.PROJECT_NO
+         , A.REGISTER_NO
+      FROM TBL_ENTIRE_HISTORY A
+      JOIN TBL_ENTIRE_HISTORY_CATEGORY B ON (A.CATEGORY_TYPE_NO = B.CATEGORY_TYPE_NO)
+     WHERE A.CATEGORY_TYPE_NO = 2
+       AND A.PROJECT_NO = #{ projectNo }
+     ORDER BY 1 DESC
+  </select>
+  
+  <select id="selectIssueHistoryList" resultMap="historyResultMap">
+	SELECT
+	       A.HISTORY_NO
+	     , A.UPDATED_DATE
+         , A.CONTENT
+         , A.CATEGORY_TYPE_NO
+         , B.CATEGORY_TYPE_NAME
+         , A.PROJECT_NO
+         , A.REGISTER_NO
+      FROM TBL_ENTIRE_HISTORY A
+      JOIN TBL_ENTIRE_HISTORY_CATEGORY B ON (A.CATEGORY_TYPE_NO = B.CATEGORY_TYPE_NO)
+     WHERE A.CATEGORY_TYPE_NO = 3
+       AND A.PROJECT_NO = #{ projectNo }
+     ORDER BY 1 DESC
+  </select>
+  
+  <select id="selectOutputHistoryList" resultMap="historyResultMap">
+	SELECT
+	       A.HISTORY_NO
+	     , A.UPDATED_DATE
+         , A.CONTENT
+         , A.CATEGORY_TYPE_NO
+         , B.CATEGORY_TYPE_NAME
+         , A.PROJECT_NO
+         , A.REGISTER_NO
+      FROM TBL_ENTIRE_HISTORY A
+      JOIN TBL_ENTIRE_HISTORY_CATEGORY B ON (A.CATEGORY_TYPE_NO = B.CATEGORY_TYPE_NO)
+     WHERE A.CATEGORY_TYPE_NO = 4
+       AND A.PROJECT_NO = #{ projectNo }
+     ORDER BY 1 DESC
+  </select>
+  
+  <select id="selectMemberHistoryList" resultMap="historyResultMap">
+	SELECT
+	       A.HISTORY_NO
+	     , A.UPDATED_DATE
+         , A.CONTENT
+         , A.CATEGORY_TYPE_NO
+         , B.CATEGORY_TYPE_NAME
+         , A.PROJECT_NO
+         , A.REGISTER_NO
+      FROM TBL_ENTIRE_HISTORY A
+      JOIN TBL_ENTIRE_HISTORY_CATEGORY B ON (A.CATEGORY_TYPE_NO = B.CATEGORY_TYPE_NO)
+     WHERE A.CATEGORY_TYPE_NO = 5
+       AND A.PROJECT_NO = #{ projectNo }
+     ORDER BY 1 DESC
+  </select>
+  
+  </mapper>

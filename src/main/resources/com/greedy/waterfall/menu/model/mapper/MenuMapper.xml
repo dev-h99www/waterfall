@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.greedy.waterfall.menu.model.mapper.MenuMapper">
+	<resultMap type="com.greedy.waterfall.project.model.dto.ProjectDTO" id="projectResult">
+		<id property="no" column="PROJECT_NO"/>
+		<result property="name" column="PROJECT_NAME"/>	
+		<result property="startDate" column="PROJECT_START_DATE"/>
+		<result property="deadLine" column="PROJECT_DEADLINE"/>
+		<result property="progression" column="PROJECT_PROGRESSION"/>
+		<result property="status" column="PROJECT_STATUS"/>
+		<result property="completed" column="PROJECT_COMPLETED_DATE"/>
+		<result property="statusCode" column="PROJECT_PROGRESS_STATUS_CODE"/>
+		<result property="outputCount" column="OUTPUT_COUNT"/>
+		<result property="issueCount" column="ISSUE_COUNT"/>
+		
+		<association property="member" resultMap="memberResult"></association>
+		<association property="projectInfo" resultMap="projectInfoResult"></association>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.board.model.dto.MeetingMemberDTO" id="memberResult">
+		<result property="memberName" column="MEMBER_NAME"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.menu.model.dto.ProjectInfoDTO" id="projectInfoResult">
+		<result property="outputAmount" column="OUTPUT_AMOUNT"/>
+		<result property="watingIssueAmount" column="WAIT_ISSUE"/>
+		<result property="progressingIssueAmount" column="PROGRESS_ISSUE"/>
+		<result property="solvedIssueAmount" column="SOLVED_ISSUE"/>
+		<result property="beforeProceedingTaskAmount" column="BEFORE_TASK"/>
+		<result property="progressingTaskAmount" column="PROGRESS_TASK"/>
+		<result property="testingTaskAmount" column="TEST_TASK"/>
+		<result property="finishedTaskAmount" column="FINISH_TASK"/>
+		<result property="pendingTaskAmount" column="PENDING_TASK"/>
+		
+		<association property="role" resultMap="projectRole"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.project.model.dto.ProjectRoleDTO" id="projectRole">
+		<id property="roleNo" column="ROLE_NO"/>
+		<result property="roleName" column="ROLE_NAME"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.member.model.dto.MemberDTO" id="memberResultMap">
+		<id property="no" column="MEMBER_NO"/>
+		<result property="id" column="MEMBER_ID"/>
+		<result property="pwd" column="MEMBER_PWD"/>
+		<result property="phone" column="PHONE"/>
+		<result property="email" column="EMAIL"/>
+		<result property="createDate" column="MEMBER_CREATED_DATE"/>
+		<result property="retiredDate" column="MEMBER_RETIRED_DATE"/>
+		<result property="status" column="MEMBER_STATUS"/>
+		<result property="name" column="MEMBER_NAME"/>
+		<result property="initStatus" column="MEMBER_PWD_INIT_STATUS"/>
+		<result property="role" column="MEMBER_AUTHORIZATION_NO"/>
+	</resultMap>
+	
+	<resultMap type="com.greedy.waterfall.project.model.dto.ProjectHistoryDTO" id="projectHistory">
+		<result property="content" column="CONTENT"/>
+	</resultMap>
+	
+	<select id="findProjectInfo" resultMap="projectResult">
+        SELECT /* com.greedy.waterfall.menu.model.mapper.MenuMapper#findProjectInfo() */ 
+               A.PROJECT_NO
+             , A.PROJECT_NAME
+             , A.PROJECT_START_DATE
+             , A.PROJECT_DEADLINE
+             , A.PROJECT_PROGRESSION
+             , A.PROJECT_PROGRESS_STATUS_CODE
+             , C.MEMBER_NO
+             , C.MEMBER_NAME
+             , (SELECT COUNT(*) 
+                  FROM TBL_OUTPUT D
+                 WHERE D.PROJECT_NO = A.PROJECT_NO
+                   AND D.OUTPUT_STATUS = 'Y'
+               ) AS OUTPUT_AMOUNT
+             , (SELECT COUNT(*) 
+                  FROM TBL_ISSUE E 
+                 WHERE E.PROJECT_NO = A.PROJECT_NO
+                   AND E.ISSUE_PROGRESS_STATUS = '대기중'
+                   AND E.ISSUE_STATUS = 'Y'
+               ) AS WAIT_ISSUE
+             , (SELECT COUNT(*) 
+                  FROM TBL_ISSUE F 
+                 WHERE F.PROJECT_NO = A.PROJECT_NO
+                   AND F.ISSUE_PROGRESS_STATUS = '처리중'
+                   AND F.ISSUE_STATUS = 'Y'
+               ) AS PROGRESS_ISSUE
+             , (SELECT COUNT(*) 
+                  FROM TBL_ISSUE G 
+                 WHERE G.PROJECT_NO = A.PROJECT_NO
+                   AND G.ISSUE_PROGRESS_STATUS = '완료'
+                   AND G.ISSUE_STATUS = 'Y'
+               ) AS SOLVED_ISSUE
+             , (SELECT COUNT(*)
+                  FROM TBL_TASK H
+                 WHERE H.TASK_PROGRESS_STATUS ='진행전'
+                   AND H.PROJECT_NO = A.PROJECT_NO
+                   AND H.TASK_STATUS = 'Y'
+               ) AS BEFORE_TASK
+             , (SELECT COUNT(*)
+                  FROM TBL_TASK I
+                 WHERE I.TASK_PROGRESS_STATUS ='진행중'
+                   AND I.PROJECT_NO = A.PROJECT_NO
+                   AND I.TASK_STATUS = 'Y'
+               ) AS PROGRESS_TASK
+             , (SELECT COUNT(*)
+                  FROM TBL_TASK J
+                 WHERE J.TASK_PROGRESS_STATUS ='테스트중'
+                   AND J.PROJECT_NO = A.PROJECT_NO
+                   AND J.TASK_STATUS = 'Y'
+               ) AS TEST_TASK
+             , (SELECT COUNT(*)
+                  FROM TBL_TASK K
+                 WHERE K.TASK_PROGRESS_STATUS ='진행완료'
+                   AND K.PROJECT_NO = A.PROJECT_NO
+                   AND K.TASK_STATUS = 'Y'
+               ) AS FINISH_TASK
+             , (SELECT COUNT(*)
+                          FROM TBL_TASK L
+                 WHERE TASK_PROGRESS_STATUS ='보류'
+                   AND L.PROJECT_NO = A.PROJECT_NO
+                   AND L.TASK_STATUS = 'Y'
+               ) AS PENDING_TASK
+          FROM TBL_PROJECT A
+          JOIN TBL_ROLE_ASSIGNMENT_HISTORY B ON(A.PROJECT_NO = B.PROJECT_NO)
+          JOIN TBL_MEMBER C ON (B.MEMBER_NO = C.MEMBER_NO)
+         WHERE B.ROLE_NO = 8
+           AND B.PROJECT_NO = #{ projectNo }
+	</select>
+	
+	<select id="findJoinProjectCount" resultType="_int">
+        SELECT /* com.greedy.waterfall.menu.model.mapper.MenuMapper#findJoinProjectCount() */  
+               COUNT(COUNT(*))
+          FROM TBL_ROLE_ASSIGNMENT_HISTORY A
+          JOIN TBL_PROJECT B ON (A.PROJECT_NO = B.PROJECT_NO)
+          JOIN TBL_MEMBER C ON (A.MEMBER_NO = C.MEMBER_NO)
+         WHERE B.PROJECT_STATUS = 'Y'
+           AND C.MEMBER_NO = #{ no }
+           AND A.ROLE_NO != 8
+         GROUP BY A.PROJECT_NO
+	</select>
+
+	<select id="findProjectCount" resultType="_int">
+        SELECT /* com.greedy.waterfall.menu.model.mapper.MenuMapper#findProjectCount() */  
+               COUNT(COUNT(*))
+          FROM TBL_ROLE_ASSIGNMENT_HISTORY A
+          JOIN TBL_PROJECT B ON (A.PROJECT_NO = B.PROJECT_NO)
+          JOIN TBL_MEMBER C ON (A.MEMBER_NO = C.MEMBER_NO)
+         WHERE B.PROJECT_STATUS = 'Y'
+         <if test="role != 1">
+           AND C.MEMBER_NO = #{ no }
+           AND A.ROLE_NO = 8
+       	</if>
+         GROUP BY A.PROJECT_NO
+	</select>
+	
+	<select id="findMainProjectList" resultMap="projectResult">
+        SELECT /* com.greedy.waterfall.menu.model.mapper.MenuMapper#findMainProjectList() */ 
+               RNUM
+             , A.PROJECT_NO
+             , A.PROJECT_NAME
+             , A.MEMBER_NAME
+          FROM (SELECT ROWNUM RNUM
+                     , B.PROJECT_NO
+                     , B.PROJECT_NAME
+                     , B.MEMBER_NAME
+                  FROM (SELECT D.PROJECT_NO
+                             , D.PROJECT_NAME
+                             , E.MEMBER_NO
+                             , E.MEMBER_NAME
+                         FROM TBL_ROLE_ASSIGNMENT_HISTORY C
+                         JOIN TBL_PROJECT D ON (C.PROJECT_NO = D.PROJECT_NO)
+                         JOIN TBL_MEMBER E ON (C.MEMBER_NO = E.MEMBER_NO)
+                        WHERE D.PROJECT_STATUS = 'Y'
+                          AND C.ROLE_NO = 8
+                      	<if test="member.role != 1">
+                          AND C.MEMBER_NO = #{ member.no }       
+                        </if>
+                        ORDER BY C.PROJECT_NO DESC
+                       ) B
+				<![CDATA[
+                 WHERE ROWNUM <= #{ endRow }
+				]]>
+               ) A
+         WHERE RNUM >= #{ startRow }
+	</select>
+	
+	<select id="findJoinProjectList" resultMap="projectResult">
+        SELECT /* com.greedy.waterfall.menu.model.mapper.MenuMapper#findJoinProjectList() */ 
+               RNUM
+             , A.PROJECT_NO
+             , A.PROJECT_NAME
+             , A.MEMBER_NAME
+          FROM (SELECT ROWNUM RNUM
+                     , B.PROJECT_NO
+                     , B.PROJECT_NAME
+                     , B.MEMBER_NAME
+                  FROM (SELECT D.PROJECT_NO
+                             , D.PROJECT_NAME
+                             , E.MEMBER_NO
+                             , E.MEMBER_NAME
+                         FROM TBL_ROLE_ASSIGNMENT_HISTORY C
+                         JOIN TBL_PROJECT D ON (C.PROJECT_NO = D.PROJECT_NO)
+                         JOIN TBL_MEMBER E ON (C.MEMBER_NO = E.MEMBER_NO)
+                        WHERE C.ROLE_NO = 8
+                          AND D.PROJECT_STATUS = 'Y'
+                          AND C.PROJECT_NO IN (SELECT F.PROJECT_NO
+                                                 FROM TBL_ROLE_ASSIGNMENT_HISTORY F
+                                                WHERE F.ROLE_NO != 8
+                                                  AND F.MEMBER_NO = #{ member.no }
+                                                GROUP BY F.PROJECT_NO
+                                              )        
+                        ORDER BY C.PROJECT_NO DESC
+                       ) B
+				<![CDATA[
+                 WHERE ROWNUM <= #{ endRow }
+				]]>
+               ) A
+         WHERE RNUM >= #{ startRow }
+	</select>
+	
+	<select id="findJoinProjectDetail" resultMap="projectResult">
+        SELECT /* com.greedy.waterfall.menu.model.mapper.MenuMapper#findJoinProjectDetail() */ 
+               A.PROJECT_NO
+             , A.PROJECT_NAME
+             , A.PROJECT_START_DATE
+             , A.PROJECT_DEADLINE
+             , A.PROJECT_PROGRESSION
+             , A.PROJECT_PROGRESS_STATUS_CODE
+             , C.MEMBER_NO
+             , C.MEMBER_NAME
+             , D.ROLE_NAME
+             , (SELECT COUNT(*) 
+                  FROM TBL_ISSUE E 
+                 WHERE E.PROJECT_NO = A.PROJECT_NO
+                   AND E.ISSUE_PROGRESS_STATUS = '대기중'
+                   AND E.ISSUE_STATUS = 'Y'
+                   AND C.MEMBER_NO = E.ISSUE_REGISTER
+               ) AS WAIT_ISSUE
+             , (SELECT COUNT(*) 
+                  FROM TBL_ISSUE F 
+                 WHERE F.PROJECT_NO = A.PROJECT_NO
+                   AND F.ISSUE_PROGRESS_STATUS = '처리중'
+                   AND F.ISSUE_STATUS = 'Y'
+                   AND C.MEMBER_NO = F.ISSUE_REGISTER
+               ) AS PROGRESS_ISSUE
+             , (SELECT COUNT(*) 
+                  FROM TBL_ISSUE G 
+                 WHERE G.PROJECT_NO = A.PROJECT_NO
+                   AND G.ISSUE_PROGRESS_STATUS = '완료'
+                   AND G.ISSUE_STATUS = 'Y'
+                   AND C.MEMBER_NO = G.ISSUE_REGISTER
+               ) AS SOLVED_ISSUE
+             , (SELECT COUNT(*)
+                  FROM TBL_TASK H
+                 WHERE H.TASK_PROGRESS_STATUS ='진행전'
+                   AND H.PROJECT_NO = A.PROJECT_NO
+                   AND H.TASK_STATUS = 'Y'
+                   AND C.MEMBER_NO = H.MEMBER_NO
+               ) AS BEFORE_TASK
+             , (SELECT COUNT(*)
+                  FROM TBL_TASK I
+                 WHERE I.TASK_PROGRESS_STATUS ='진행중'
+                   AND I.PROJECT_NO = A.PROJECT_NO
+                   AND I.TASK_STATUS = 'Y'
+                   AND C.MEMBER_NO = I.MEMBER_NO
+               ) AS PROGRESS_TASK
+             , (SELECT COUNT(*)
+                  FROM TBL_TASK J
+                 WHERE J.TASK_PROGRESS_STATUS ='테스트중'
+                   AND J.PROJECT_NO = A.PROJECT_NO
+                   AND J.TASK_STATUS = 'Y'
+                   AND C.MEMBER_NO = J.MEMBER_NO
+               ) AS TEST_TASK
+             , (SELECT COUNT(*)
+                  FROM TBL_TASK K
+                 WHERE K.TASK_PROGRESS_STATUS ='진행완료'
+                   AND K.PROJECT_NO = A.PROJECT_NO
+                   AND K.TASK_STATUS = 'Y'
+                   AND C.MEMBER_NO = K.MEMBER_NO
+               ) AS FINISH_TASK
+             , (SELECT COUNT(*)
+                  FROM TBL_TASK L
+                 WHERE TASK_PROGRESS_STATUS ='보류'
+                   AND L.PROJECT_NO = A.PROJECT_NO
+                   AND L.TASK_STATUS = 'Y'
+                   AND C.MEMBER_NO = L.MEMBER_NO
+               ) AS PENDING_TASK
+              , (SELECT COUNT(*) 
+                  FROM TBL_OUTPUT M
+                 WHERE M.PROJECT_NO = A.PROJECT_NO
+                   AND M.MEMBER_NO = C.MEMBER_NO
+                   AND M.OUTPUT_STATUS = 'Y'
+                   AND C.MEMBER_NO = M.MEMBER_NO
+               ) AS OUTPUT_AMOUNT
+          FROM TBL_PROJECT A
+          JOIN TBL_ROLE_ASSIGNMENT_HISTORY B ON(A.PROJECT_NO = B.PROJECT_NO)
+          JOIN TBL_MEMBER C ON (B.MEMBER_NO = C.MEMBER_NO)
+          JOIN TBL_ROLE_CATEGORY D ON (B.ROLE_NO = D.ROLE_NO)
+         WHERE B.ROLE_NO != 8
+           AND B.PROJECT_NO = #{ projectNo }
+           AND C.MEMBER_NO = #{ memberNo }
+	</select>
+	
+	<select id="findProjectHistory" resultMap="projectHistory">
+        SELECT /*com.greedy.waterfall.project.model.mapper.ProjectMapper#findProjectHistory() */
+               A.CONTENT
+          FROM TBL_ENTIRE_HISTORY A
+         WHERE A.PROJECT_NO = #{ projectNo }
+         ORDER BY A.HISTORY_NO DESC
+	</select>
+</mapper>
