@@ -104,28 +104,10 @@
                              , F.ROLE_NAME
                              , G.PROJECT_MEM_STARTED_DATE
                              , G.PROJECT_MEM_DROP_DATE
-                             , (SELECT COUNT(*)
-                                  FROM TBL_TASK H
-                                 WHERE H.PROJECT_NO = C.PROJECT_NO
-                                   AND H.MEMBER_NO = C.MEMBER_NO
-                                   AND H.TASK_PROGRESS_STATUS = '완료'
-                               ) AS COMPLETE_TASK
-                             , (SELECT COUNT(*)
-                                  FROM TBL_TASK I
-                                 WHERE I.PROJECT_NO = C.PROJECT_NO
-                                   AND I.MEMBER_NO = C.MEMBER_NO
-                                   AND I.TASK_PROGRESS_STATUS = '진행중'
-                               ) AS PROGRESSING_TASK
-                             , (SELECT COUNT(*)
-                                  FROM TBL_OUTPUT J
-                                 WHERE J.PROJECT_NO = C.PROJECT_NO
-                                   AND J.MEMBER_NO = C.MEMBER_NO
-                               ) AS REGIST_OUTPUT
-                             , (SELECT COUNT(*)
-                                  FROM TBL_ISSUE K
-                                 WHERE K.PROJECT_NO = C.PROJECT_NO
-                                   AND K.ISSUE_REGISTER = C.MEMBER_NO
-                               ) AS REGIST_ISSUE
+                             , H.COMPLETE_TASK
+                             , I.PROGRESSING_TASK
+                             , J.REGIST_OUTPUT
+                             , K.REGIST_ISSUE
                           FROM (SELECT D.PROJECT_NO
                                      , D.MEMBER_NO
                                      , D.ROLE_NO
@@ -136,7 +118,33 @@
                           JOIN TBL_MEMBER E ON (C.MEMBER_NO = E.MEMBER_NO)
                           JOIN TBL_ROLE_CATEGORY F ON (C.ROLE_NO = F.ROLE_NO)
                           JOIN TBL_PROJECT_MEM_HISTORY G ON (C.MEMBER_NO = G.MEMBER_NO)
-                        <where>
+                          LEFT JOIN (SELECT COUNT(TASK_NO) AS PROGRESSING_TASK
+                                          , TASK_NO
+                                          , MEMBER_NO
+                                       FROM TBL_TASK
+                                      WHERE PROJECT_NO = #{ projectNo }
+                                        AND TASK_PROGRESS_STATUS = '완료'
+                                      GROUP BY TASK_NO, MEMBER_NO) H ON(H.MEMBER_NO = C.MEMBER_NO)
+                          LEFT JOIN (SELECT COUNT(TASK_NO) AS COMPLETE_TASK
+                                          , TASK_NO
+                                          , MEMBER_NO
+                                       FROM TBL_TASK
+                                      WHERE PROJECT_NO = #{ projectNo }
+                                        AND TASK_PROGRESS_STATUS = '진행중'
+                                      GROUP BY TASK_NO, MEMBER_NO) I ON(I.MEMBER_NO = C.PROJECT_NO)
+                          LEFT JOIN (SELECT COUNT(OUTPUT_NO) AS REGIST_OUTPUT
+                                          , OUTPUT_NO
+                                       FROM TBL_OUTPUT
+                                      WHERE PROJECT_NO = #{ projectNo }
+                                      GROUP BY OUTPUT_NO) J ON(J.MEMBER_NO = C.MEMBER_NO)
+                          LEFT JOIN (SELECT COUNT(ISSUE_NO) AS REGIST_ISSUE
+                                          , ISSUE_NO
+                                          , ISSUE_REGISTER
+                                       FROM TBL_ISSUE
+                                      WHERE PROJECT_NO = #{ projectNo })
+                                      GROUP BY ISSUE_NO, ISSUE_REGISTER) K ON(K.ISSUE_REGISTER = C.MEMBER_NO)
+                          LEFT JOIN
+        <where>
                           	<if test="searchCondition == 'memberName'">
                                E.MEMBER_NAME LIKE '%' || #{ searchValue } || '%'
                           	</if>
