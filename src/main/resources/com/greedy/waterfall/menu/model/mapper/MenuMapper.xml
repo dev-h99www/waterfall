@@ -70,62 +70,36 @@
              , A.PROJECT_PROGRESS_STATUS_CODE
              , C.MEMBER_NO
              , C.MEMBER_NAME
-             , (SELECT COUNT(*) 
-                  FROM TBL_OUTPUT D
-                 WHERE D.PROJECT_NO = A.PROJECT_NO
-                   AND D.OUTPUT_STATUS = 'Y'
-               ) AS OUTPUT_AMOUNT
-             , (SELECT COUNT(*) 
-                  FROM TBL_ISSUE E 
-                 WHERE E.PROJECT_NO = A.PROJECT_NO
-                   AND E.ISSUE_PROGRESS_STATUS = '대기중'
-                   AND E.ISSUE_STATUS = 'Y'
-               ) AS WAIT_ISSUE
-             , (SELECT COUNT(*) 
-                  FROM TBL_ISSUE F 
-                 WHERE F.PROJECT_NO = A.PROJECT_NO
-                   AND F.ISSUE_PROGRESS_STATUS = '처리중'
-                   AND F.ISSUE_STATUS = 'Y'
-               ) AS PROGRESS_ISSUE
-             , (SELECT COUNT(*) 
-                  FROM TBL_ISSUE G 
-                 WHERE G.PROJECT_NO = A.PROJECT_NO
-                   AND G.ISSUE_PROGRESS_STATUS = '완료'
-                   AND G.ISSUE_STATUS = 'Y'
-               ) AS SOLVED_ISSUE
-             , (SELECT COUNT(*)
-                  FROM TBL_TASK H
-                 WHERE H.TASK_PROGRESS_STATUS ='진행전'
-                   AND H.PROJECT_NO = A.PROJECT_NO
-                   AND H.TASK_STATUS = 'Y'
-               ) AS BEFORE_TASK
-             , (SELECT COUNT(*)
-                  FROM TBL_TASK I
-                 WHERE I.TASK_PROGRESS_STATUS ='진행중'
-                   AND I.PROJECT_NO = A.PROJECT_NO
-                   AND I.TASK_STATUS = 'Y'
-               ) AS PROGRESS_TASK
-             , (SELECT COUNT(*)
-                  FROM TBL_TASK J
-                 WHERE J.TASK_PROGRESS_STATUS ='테스트중'
-                   AND J.PROJECT_NO = A.PROJECT_NO
-                   AND J.TASK_STATUS = 'Y'
-               ) AS TEST_TASK
-             , (SELECT COUNT(*)
-                  FROM TBL_TASK K
-                 WHERE K.TASK_PROGRESS_STATUS ='진행완료'
-                   AND K.PROJECT_NO = A.PROJECT_NO
-                   AND K.TASK_STATUS = 'Y'
-               ) AS FINISH_TASK
-             , (SELECT COUNT(*)
-                          FROM TBL_TASK L
-                 WHERE TASK_PROGRESS_STATUS ='보류'
-                   AND L.PROJECT_NO = A.PROJECT_NO
-                   AND L.TASK_STATUS = 'Y'
-               ) AS PENDING_TASK
+             , D.OUTPUT_AMOUNT
+             , E.WAIT_ISSUE
+             , F.PROGRESS_ISSUE
+             , G.SOLVED_ISSUE
+             , H.BEFORE_TASK
+             , I.PROGRESS_TASK
+             , J.TEST_TASK
+             , K.FINISH_TASK
+             , L.PENDING_TASK
           FROM TBL_PROJECT A
           JOIN TBL_ROLE_ASSIGNMENT_HISTORY B ON(A.PROJECT_NO = B.PROJECT_NO)
           JOIN TBL_MEMBER C ON (B.MEMBER_NO = C.MEMBER_NO)
+          LEFT JOIN (SELECT COUNT(*) AS OUTPUT_AMOUNT, PROJECT_NO FROM TBL_OUTPUT WHERE PROJECT_NO = #{ projectNo } AND OUTPUT_STATUS = 'Y'
+                     GROUP BY PROJECT_NO) D ON(D.PROJECT_NO = A.PROJECT_NO)
+          LEFT JOIN (SELECT COUNT(*) AS WAIT_ISSUE, PROJECT_NO FROM TBL_ISSUE WHERE PROJECT_NO = #{ projectNo } AND ISSUE_PROGRESS_STATUS = '대기중' AND ISSUE_STATUS = 'Y'
+                     GROUP BY PROJECT_NO) E ON(E.PROJECT_NO = A.PROJECT_NO)
+          LEFT JOIN (SELECT COUNT(*) AS PROGRESS_ISSUE, PROJECT_NO FROM TBL_ISSUE WHERE PROJECT_NO = #{ projectNo } AND ISSUE_PROGRESS_STATUS = '처리중' AND ISSUE_STATUS = 'Y'
+                     GROUP BY PROJECT_NO) F ON(F.PROJECT_NO = A.PROJECT_NO)
+          LEFT JOIN (SELECT COUNT(*) AS SOLVED_ISSUE, PROJECT_NO FROM TBL_ISSUE WHERE PROJECT_NO = #{ projectNo } AND ISSUE_PROGRESS_STATUS = '완료' AND ISSUE_STATUS = 'Y'
+                     GROUP BY PROJECT_NO) G ON(G.PROJECT_NO = A.PROJECT_NO)
+          LEFT JOIN (SELECT COUNT(*) AS BEFORE_TASK, PROJECT_NO FROM TBL_TASK WHERE PROJECT_NO = #{ projectNo } AND TASK_PROGRESS_STATUS = '진행전' AND TASK_STATUS = 'Y'
+                     GROUP BY PROJECT_NO) H ON(H.PROJECT_NO = A.PROJECT_NO)
+          LEFT JOIN (SELECT COUNT(*) AS PROGRESS_TASK, PROJECT_NO FROM TBL_TASK WHERE PROJECT_NO = #{ projectNo } AND TASK_PROGRESS_STATUS = '진행중' AND TASK_STATUS = 'Y'
+                     GROUP BY PROJECT_NO) I ON(I.PROJECT_NO = A.PROJECT_NO)
+          LEFT JOIN (SELECT COUNT(*) AS TEST_TASK, PROJECT_NO FROM TBL_TASK WHERE PROJECT_NO = #{ projectNo } AND TASK_PROGRESS_STATUS = '테스트중' AND TASK_STATUS = 'Y'
+                     GROUP BY PROJECT_NO) J ON(J.PROJECT_NO = A.PROJECT_NO)
+          LEFT JOIN (SELECT COUNT(*) AS FINISH_TASK, PROJECT_NO FROM TBL_TASK WHERE PROJECT_NO = #{ projectNo } AND TASK_PROGRESS_STATUS = '진행완료' AND TASK_STATUS = 'Y'
+                     GROUP BY PROJECT_NO) K ON(K.PROJECT_NO = A.PROJECT_NO)
+          LEFT JOIN (SELECT COUNT(*) AS PENDING_TASK, PROJECT_NO FROM TBL_TASK WHERE PROJECT_NO = #{ projectNo } AND TASK_PROGRESS_STATUS = '보류' AND TASK_STATUS = 'Y'
+                     GROUP BY PROJECT_NO) L ON(L.PROJECT_NO = A.PROJECT_NO)
          WHERE B.ROLE_NO = 8
            AND B.PROJECT_NO = #{ projectNo }
 	</select>

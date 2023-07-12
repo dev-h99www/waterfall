@@ -313,21 +313,9 @@
              , A.PROJECT_PROGRESS_STATUS_CODE
              , A.MEMBER_NAME
              , A.MEMBER_STATUS
-             , (SELECT COUNT(*)
-                  FROM TBL_ISSUE F
-                 WHERE F.PROJECT_NO = A.PROJECT_NO
-                   AND F.ISSUE_STATUS = 'Y'
-               ) AS TOTAL_ISSUE
-             , (SELECT COUNT(*)
-                  FROM TBL_TASK G
-                 WHERE G.PROJECT_NO = A.PROJECT_NO
-                   AND G.TASK_STATUS = 'Y'
-               ) AS TOTAL_TASK
-             , (SELECT COUNT(*)
-                  FROM TBL_OUTPUT H
-                 WHERE H.PROJECT_NO = A.PROJECT_NO
-                   AND H.OUTPUT_STATUS = 'Y'
-               ) AS OUTPUT_AMOUNT
+             , A.TOTAL_ISSUE
+             , A.TOTAL_TASK
+             , A.OUTPUT_AMOUNT
           FROM (SELECT ROWNUM RNUM
                      , B.PROJECT_NO
                      , B.PROJECT_NAME
@@ -339,6 +327,9 @@
                      , B.PROJECT_PROGRESS_STATUS_CODE
                      , B.MEMBER_NAME
                      , B.MEMBER_STATUS
+                     , B.TOTAL_ISSUE
+                     , B.TOTAL_TASK
+                     , B.OUTPUT_AMOUNT
                   FROM (SELECT C.PROJECT_NO
                              , C.PROJECT_NAME
                              , C.PROJECT_START_DATE
@@ -349,9 +340,18 @@
                              , C.PROJECT_PROGRESS_STATUS_CODE
                              , E.MEMBER_NAME
                              , E.MEMBER_STATUS
+                             , F.TOTAL_ISSUE
+                             , G.TOTAL_TASK
+                             , H.OUTPUT_AMOUNT
                           FROM TBL_PROJECT C
                           JOIN TBL_ROLE_ASSIGNMENT_HISTORY D ON (C.PROJECT_NO = D.PROJECT_NO)
                           JOIN TBL_MEMBER E ON(D.MEMBER_NO = E.MEMBER_NO)
+                          LEFT JOIN (SELECT COUNT(*) AS TOTAL_ISSUE, PROJECT_NO FROM TBL_ISSUE WHERE ISSUE_STATUS = 'Y'
+                                                                                               GROUP BY PROJECT_NO) F ON(F.PROJECT_NO = C.PROJECT_NO)
+                          LEFT JOIN (SELECT COUNT(*) AS TOTAL_TASK, PROJECT_NO FROM TBL_TASK WHERE TASK_STATUS = 'Y'
+                                                                                             GROUP BY PROJECT_NO) G ON(G.PROJECT_NO = C.PROJECT_NO)
+                          LEFT JOIN (SELECT COUNT(*) AS OUTPUT_AMOUNT, PROJECT_NO FROM TBL_OUTPUT WHERE OUTPUT_STATUS = 'Y'
+                                                                                                  GROUP BY PROJECT_NO) H ON(H.PROJECT_NO = C.PROJECT_NO)
 						<where>                          
    							<if test="searchCondition == 'projectName'">                                              
                                C.PROJECT_NAME LIKE '%' || #{ searchValue } || '%'                  
@@ -384,21 +384,9 @@
              , A.PROJECT_PROGRESS_STATUS_CODE
              , A.MEMBER_NAME
              , A.MEMBER_STATUS
-             , (SELECT COUNT(*)
-                  FROM TBL_ISSUE F
-                 WHERE F.PROJECT_NO = A.PROJECT_NO
-                   AND F.ISSUE_STATUS = 'Y'
-               ) AS TOTAL_ISSUE
-             , (SELECT COUNT(*)
-                  FROM TBL_TASK G
-                 WHERE G.PROJECT_NO = A.PROJECT_NO
-                   AND G.TASK_STATUS = 'Y'
-               ) AS TOTAL_TASK
-             , (SELECT COUNT(*)
-                  FROM TBL_OUTPUT H
-                 WHERE H.PROJECT_NO = A.PROJECT_NO
-                   AND H.OUTPUT_STATUS = 'Y'
-               ) AS OUTPUT_AMOUNT
+             , A.TOTAL_ISSUE
+             , A.TOTAL_TASK
+             , A.OUTPUT_AMOUNT
           FROM (SELECT ROWNUM RNUM
                      , B.PROJECT_NO
                      , B.PROJECT_NAME
@@ -410,6 +398,9 @@
                      , B.PROJECT_PROGRESS_STATUS_CODE
                      , B.MEMBER_NAME
                      , B.MEMBER_STATUS
+                     , B.TOTAL_ISSUE
+                     , B.TOTAL_TASK
+                     , B.OUTPUT_AMOUNT
                   FROM (SELECT C.PROJECT_NO
                              , C.PROJECT_NAME
                              , C.PROJECT_START_DATE
@@ -420,9 +411,18 @@
                              , C.PROJECT_PROGRESS_STATUS_CODE
                              , E.MEMBER_NAME
                              , E.MEMBER_STATUS
+                             , F.TOTAL_ISSUE
+                             , G.TOTAL_TASK
+                             , H.OUTPUT_AMOUNT
                           FROM TBL_PROJECT C
                           JOIN TBL_ROLE_ASSIGNMENT_HISTORY D ON (C.PROJECT_NO = D.PROJECT_NO)
                           JOIN TBL_MEMBER E ON(D.MEMBER_NO = E.MEMBER_NO)
+                          LEFT JOIN (SELECT COUNT(*) AS TOTAL_ISSUE, PROJECT_NO FROM TBL_ISSUE WHERE ISSUE_STATUS = 'Y'
+                                                                                             GROUP BY PROJECT_NO) F ON(F.PROJECT_NO = C.PROJECT_NO)
+                          LEFT JOIN (SELECT COUNT(*) AS TOTAL_TASK, PROJECT_NO FROM TBL_TASK WHERE TASK_STATUS = 'Y'
+                                                                                             GROUP BY PROJECT_NO) G ON(G.PROJECT_NO = C.PROJECT_NO)
+                          LEFT JOIN (SELECT COUNT(*) AS OUTPUT_AMOUNT, PROJECT_NO FROM TBL_OUTPUT WHERE OUTPUT_STATUS = 'Y'
+                                                                                                  GROUP BY PROJECT_NO) H ON(H.PROJECT_NO = C.PROJECT_NO)
 					<where>
               			<if test="searchCondition = 'projectName'">
                                C.PROJECT_NAME LIKE '%' || #{ searchValue } || '%'
@@ -458,21 +458,9 @@
              , A.PROJECT_PROGRESS_STATUS_CODE
              , A.MEMBER_NAME
              , A.MEMBER_STATUS
-             , (SELECT COUNT(*)
-                  FROM TBL_ISSUE F
-                 WHERE F.PROJECT_NO = A.PROJECT_NO
-                   AND F.ISSUE_STATUS = 'Y'
-               ) AS TOTAL_ISSUE
-             , (SELECT COUNT(*)
-                  FROM TBL_TASK G
-                 WHERE G.PROJECT_NO = A.PROJECT_NO
-                   AND G.TASK_STATUS = 'Y'
-               ) AS TOTAL_TASK
-             , (SELECT COUNT(*)
-                  FROM TBL_OUTPUT H
-                 WHERE H.PROJECT_NO = A.PROJECT_NO
-                   AND H.OUTPUT_STATUS = 'Y'
-               ) AS OUTPUT_AMOUNT
+             , A.TOTAL_ISSUE
+             , A.TOTAL_TASK
+             , A.OUTPUT_AMOUNT
           FROM (SELECT ROWNUM RNUM
                      , B.PROJECT_NO
                      , B.PROJECT_NAME
@@ -484,6 +472,9 @@
                      , B.PROJECT_PROGRESS_STATUS_CODE
                      , B.MEMBER_NAME
                      , B.MEMBER_STATUS
+                     , B.TOTAL_ISSUE
+                     , B.TOTAL_TASK
+                     , B.OUTPUT_AMOUNT
                   FROM (SELECT D.PROJECT_NO
                              , D.PROJECT_NAME
                              , D.PROJECT_START_DATE
@@ -494,9 +485,18 @@
                              , D.PROJECT_PROGRESS_STATUS_CODE
                              , E.MEMBER_NAME
                              , E.MEMBER_STATUS
+                             , F.TOTAL_ISSUE
+                             , G.TOTAL_TASK
+                             , H.OUTPUT_AMOUNT
                           FROM TBL_PROJECT_MEM_HISTORY C
                           JOIN TBL_PROJECT D ON (C.PROJECT_NO = D.PROJECT_NO)
                           JOIN TBL_MEMBER E ON (C.MEMBER_NO = E.MEMBER_NO)
+                          LEFT JOIN (SELECT COUNT(*) AS TOTAL_ISSUE, PROJECT_NO FROM TBL_ISSUE WHERE ISSUE_STATUS = 'Y'
+                          GROUP BY PROJECT_NO) F ON(F.PROJECT_NO = C.PROJECT_NO)
+                          LEFT JOIN (SELECT COUNT(*) AS TOTAL_TASK, PROJECT_NO FROM TBL_TASK WHERE TASK_STATUS = 'Y'
+                          GROUP BY PROJECT_NO) G ON(G.PROJECT_NO = C.PROJECT_NO)
+                          LEFT JOIN (SELECT COUNT(*) AS OUTPUT_AMOUNT, PROJECT_NO FROM TBL_OUTPUT WHERE OUTPUT_STATUS = 'Y'
+                          GROUP BY PROJECT_NO) H ON(H.PROJECT_NO = C.PROJECT_NO)
 					<where>                         
                     	<if test="searchCondition == 'pmName'">
                                E.MEMBER_NAME LIKE '%' || #{ searchValue } || '%'
